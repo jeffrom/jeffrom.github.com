@@ -1,3 +1,5 @@
 source:      .
 destination: ./_site
 
+paginate: 10
+

@@ -1,0 +1,73 @@
+
+body, html {
+    margin:0;
+    padding:0;
+    position:relative;
+    font-family:"Helvetica Neue", "HelveticaNeue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-size:13px;
+    line-height:18px;
+}
+
+a {
+    text-decoration:none;
+}
+
+.underline:hover {
+    text-decoration:underline;
+}
+
+.centered {
+    float:none;
+    margin:0 auto;
+}
+
+.container {
+    padding-top:100px;
+}
+
+#thepage {
+
+}
+
+#page_content {
+    margin-bottom:25px;
+    padding: 0 20px;
+}
+
+#topleft {
+    position:absolute;
+    top:20px;
+    left:15px;
+}
+
+#posts {
+    width:600px;
+}
+
+.post_container {
+    width:100%;
+    max-width:980px;
+    min-width:727px;
+    margin:0 auto;
+}
+
+.post {
+
+}
+
+.post_title {
+    margin-bottom:40px;
+    text-align:center;
+    font-weight:200;
+    font-size:35px;
+}
+
+.post_content {
+    font-size:16px;
+    line-height:20px;
+}
+
+.post_content > p {
+    font-weight:200;
+}
+

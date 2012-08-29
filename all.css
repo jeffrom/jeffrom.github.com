@@ -1,5 +1,6 @@
 ---
 ---
-{% include main.css %}
 {% include normalize.css %}
+{% include colors.css %}
+{% include main.css %}
 

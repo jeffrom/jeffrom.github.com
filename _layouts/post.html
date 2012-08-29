@@ -1,0 +1,38 @@
+{% include head.html %}
+
+    <div id="posts" class="centered container">
+        <div class="post_container">
+            <div class="post">
+                <div class="post_title blue">
+                    {{ page.title }}
+                </div>
+
+                {% if page.subtitle %}
+                <div class="post_subtitle">
+                    {{ page.subtitle }}
+                </div>
+                {% endif %}
+
+                <div class="post_date">
+                    {{ page.date | date_to_long_string }}
+                </div>
+
+                <div class="clear"></div>
+                <hr class="sep">
+                <div class="post_content lightblack">
+                    {{ content }}
+                </div>
+
+                <div class="post_footer"></div>
+            </div>
+        </div>
+    </div>
+
+<!--{{ page.content }}
+    {{ page.title }}
+{{ page.url }}
+{{ page.date }}
+{{ page.id }}-->
+
+{% include footer.html %}
+

@@ -4,20 +4,6 @@ layout: default
 ---
 
     <div id="posts" class="centered container">
-        {% for post in site.posts %}
-        <div class="post_container">
-            <div class="post">
-                <a class="post_title underline blue" href="{{ post.url }}">
-                    {{ post.title }}
-                </a>
-                <div class="date">
-                    {{ post.date | date_to_long_string }}
-                </div>
-
-                <div class="post_content lightblack">
-                    {{ post.content }}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+        {% include posts.html %}
     </div>
+

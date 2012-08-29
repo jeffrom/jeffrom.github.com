@@ -12,8 +12,35 @@ a {
     text-decoration:none;
 }
 
+h1, h2, h3 {
+    font-weight:400;
+}
+
+hr {
+    border: solid #DDD;
+    border-width:1px 0 0;
+    clear:both;
+    margin:26px 0 18px;
+    height:0;
+    width:70%;
+}
+
+blockquote {
+    font-style:italic;
+    font-size:14px;
+}
+
 .underline:hover {
     text-decoration:underline;
+}
+
+.clear {
+    clear:both;
+    margin:-1px 0 0 0;
+    height:1px;
+    width:100%;
+    overflow:hidden;
+    display:block;
 }
 
 .centered {
@@ -29,9 +56,19 @@ a {
 
 }
 
+#title {
+    font-family: "Consolas" "Courier New";
+    font-size:18px;
+}
+
 #page_content {
-    margin-bottom:25px;
+    margin-bottom:40px;
     padding: 0 20px;
+}
+
+#page_footer {
+    height:40px;
+    margin-top:-40px;
 }
 
 #topleft {
@@ -41,13 +78,13 @@ a {
 }
 
 #posts {
-    width:600px;
+    /*width:60%;*/
+    width:500px;
+    max-width:500px;
+    min-width:200px;
 }
 
 .post_container {
-    width:100%;
-    max-width:980px;
-    min-width:727px;
     margin:0 auto;
 }
 
@@ -56,10 +93,16 @@ a {
 }
 
 .post_title {
-    margin-bottom:40px;
+    float:left;
     text-align:center;
     font-weight:200;
     font-size:35px;
+}
+
+.post_date {
+    float:left;
+    margin-top:8px;
+    margin-left:10px;
 }
 
 .post_content {
@@ -71,3 +114,19 @@ a {
     font-weight:200;
 }
 
+.post_content a {
+    color: rgb(15, 124, 158);
+}
+
+.post_content img {
+    padding-left:40px;
+    max-width:430px;
+}
+
+.post_content a:hover {
+    text-decoration:underline;
+}
+
+.post_footer {
+    height:20px;
+}

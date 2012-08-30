@@ -7,15 +7,15 @@
                     {{ page.title }}
                 </div>
 
+                <div class="post_date">
+                    <i>{{ page.date | date_to_long_string }}</i>
+                </div>
+
                 {% if page.subtitle %}
                 <div class="post_subtitle">
                     {{ page.subtitle }}
                 </div>
                 {% endif %}
-
-                <div class="post_date">
-                    {{ page.date | date_to_long_string }}
-                </div>
 
                 <div class="clear"></div>
                 <hr class="sep">
@@ -27,12 +27,6 @@
             </div>
         </div>
     </div>
-
-<!--{{ page.content }}
-    {{ page.title }}
-{{ page.url }}
-{{ page.date }}
-{{ page.id }}-->
 
 {% include footer.html %}
 

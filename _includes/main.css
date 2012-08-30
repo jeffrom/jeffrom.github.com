@@ -81,7 +81,9 @@ blockquote {
 }
 
 #page_footer {
+    position:absolute;
     height:100px;
+    width:100%;
 }
 
 #footer_content {
@@ -165,3 +167,4 @@ blockquote {
     margin-top:10px;
     margin-right:20px;
 }
+

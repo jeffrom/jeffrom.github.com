@@ -48,6 +48,10 @@ blockquote {
     margin:0 auto;
 }
 
+
+/*******************************/
+
+
 .container {
     padding-top:100px;
 }
@@ -56,9 +60,20 @@ blockquote {
 
 }
 
-#title {
-    font-family: "Consolas" "Courier New";
-    font-size:18px;
+#lessthan {
+
+}
+
+#three {
+    display:block;
+    position:absolute;
+    left:20px;
+    top:1px;
+}
+
+.texticon {
+    font-family: "Courier New";
+    font-size:52px;
 }
 
 #page_content {
@@ -76,7 +91,7 @@ blockquote {
 
 #topleft {
     position:absolute;
-    top:20px;
+    top:24px;
     left:15px;
 }
 

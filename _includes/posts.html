@@ -5,14 +5,14 @@
                 <a class="post_title underline blue" href="{{ post.url }}">
                     {{ post.title }}
                 </a>
+                <div class="post_date">
+                    <i>{{ post.date | date_to_long_string }}</i>
+                </div>
                 {% if post.subtitle %}
                 <div class="post_subtitle">
                     {{ post.subtitle }}
                 </div>
                 {% endif %}
-                <div class="post_date">
-                    {{ post.date | date_to_long_string }}
-                </div>
 
                 <div class="clear"></div>
                 <hr class="sep">

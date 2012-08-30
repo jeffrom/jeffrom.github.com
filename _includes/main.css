@@ -85,6 +85,8 @@ blockquote {
     width:500px;
     max-width:500px;
     min-width:200px;
+    margin-left:220px;
+    float:none;
 }
 
 .post_container {
@@ -103,9 +105,13 @@ blockquote {
 }
 
 .post_date {
-    float:left;
+    /*float:left;
     margin-top:8px;
-    margin-left:10px;
+    margin-left:10px;*/
+    position:relative;
+    top:26px;
+    left:-154px;
+    float:right;
 }
 
 .post_content {

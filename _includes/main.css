@@ -84,6 +84,12 @@ blockquote {
     height:100px;
 }
 
+#footer_content {
+    width:500px;
+    height:100%;
+    margin-left:220px;
+}
+
 .footer_separator {
 }
 
@@ -154,7 +160,8 @@ blockquote {
 }
 
 #footer_email {
+    font-weight:bold;
     float:right;
-    margin-right:30px;
-    margin-top:70px;
+    margin-top:10px;
+    margin-right:20px;
 }

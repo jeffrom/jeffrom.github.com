@@ -10,7 +10,7 @@ var Resize = (function() {
     var content_height;
 
     my.on_resize = function(e) {
-        console.log(e);
+        //console.log(e);
     };
 
     my.set_doc_height = function(height) {
@@ -35,7 +35,15 @@ function setup_events() {
 $().ready(function() {
 
 
-    Resize.set_doc_height();
+    if (!$('#posts img').length) {
+        Resize.set_doc_height();
+    }
     setup_events();
+});
+
+$(window).load(function() {
+    if ($('#posts img').length) {
+        Resize.set_doc_height();
+    }
 });
 

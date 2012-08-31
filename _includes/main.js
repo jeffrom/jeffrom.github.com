@@ -8,22 +8,35 @@ var Main = (function() {
 var Resize = (function() {
     var my = {};
     var content_height;
-    var $posts = $('#posts');
+    var $posts = $('#posts, #footer_content');
 
     my.set_large_size = function() {
-        $posts = $posts.length ? $posts : $('#posts');
+        $posts = $posts.length ? $posts : $('#posts, #footer_content');
         $posts.css({
-            'margin-left': '220px'
+            'margin-left': '220px',
+            'width': '500px',
+            'min-width': '200px',
+            'max-width': '500px'
+        });
+    };
+
+    my.set_mobile_size = function() {
+        $posts = $posts.length ? $posts : $('#posts, #footer_content');
+        $posts.css({
+            'margin-left': '',
+            'width': '',
+            'min-width': '',
+            'max-width': ''
         });
     };
 
     my.on_resize = function(e) {
         e = e || {};
-        $posts = $posts || $('#posts');
+        $posts = $posts || $('#posts, #footer_content');
         //console.log(e);
         var width = $(window).width();
-        if (width >= 1200) {
-            my.set_large_size();
+        if (width < 500) {
+            my.set_mobile_size();
             return;
         }
 

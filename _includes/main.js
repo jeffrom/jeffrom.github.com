@@ -23,10 +23,10 @@ var Resize = (function() {
     my.set_mobile_size = function() {
         $posts = $posts.length ? $posts : $('#posts, #footer_content');
         $posts.css({
-            'margin-left': '',
-            'width': '',
-            'min-width': '',
-            'max-width': ''
+            'margin-left': 'inherit',
+            'width': 'inherit',
+            'min-width': 'inherit',
+            'max-width': 'inherit'
         });
     };
 
@@ -39,6 +39,7 @@ var Resize = (function() {
             my.set_mobile_size();
             return;
         }
+        my.set_large_size();
 
         var margin = Math.max(220 - (1200 - width), 0);
         $posts.css({

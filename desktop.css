@@ -36,5 +36,9 @@ body, html {
     top:26px;
     left:-154px;
     float:right;
+    clear:none;
+    margin-bottom:0px;
+    line-height:inherit;
+    margin-left:inherit;
 }
 

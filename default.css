@@ -13,6 +13,10 @@
     padding:10px;
 }
 
+.mobile_clear {
+    display:none;
+}
+
 .post_title {
     font-size:24px;
 }

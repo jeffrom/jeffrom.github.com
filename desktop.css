@@ -12,6 +12,16 @@ hr {
     margin:6px 0;
 }
 
+.mobile_clear {
+    display:none;
+    clear:inherit;
+    margin:inherit;
+    height:inherit;
+    width:inherit;
+    overflow:inherit;
+    display:inherit;
+}
+
 #posts {
     width:500px;
     max-width:500px;

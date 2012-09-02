@@ -1,6 +1,7 @@
 ---
 layout: post
 title: duh first post
+
 ---
 
 This is my first post.

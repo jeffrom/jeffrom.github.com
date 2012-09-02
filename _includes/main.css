@@ -105,11 +105,16 @@ blockquote {
 
 }
 
+.post_date {
+
+}
+
 .post_title {
     float:left;
     text-align:center;
     font-weight:200;
     font-size:35px;
+    line-height:35px;
 }
 
 .post_content {

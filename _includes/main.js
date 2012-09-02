@@ -63,22 +63,33 @@ var Resize = (function() {
 
 function setup_events() {
     $(window).on('resize', function(e) {
-        Resize.on_resize();
+        //Resize.on_resize();
         Resize.set_doc_height();
     });
+
+    $('#posts').on({
+        'mouseenter': function(e) {
+
+        },
+        'mouseout': function(e) {
+
+        }
+    }, 'img');
 }
 
 $().ready(function() {
 
-    Resize.on_resize();
-    if (!$('#posts img').length) {
+    Main.$post_images = $('#posts img');
+
+    //Resize.on_resize();
+    if (!Main.$post_images.length) {
         Resize.set_doc_height();
     }
     setup_events();
 });
 
 $(window).load(function() {
-    if ($('#posts img').length) {
+    if (Main.$post_images && Main.$post_images.length) {
         Resize.set_doc_height();
     }
 });

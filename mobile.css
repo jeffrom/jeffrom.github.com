@@ -1,6 +1,11 @@
 ---
 ---
+
 {% include normalize.css %}
 {% include colors.css %}
 {% include main.css %}
+
+#posts {
+    margin:15px;
+}
 

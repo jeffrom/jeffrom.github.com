@@ -76,20 +76,10 @@ blockquote {
     font-size:52px;
 }
 
-#page_content {
-    padding: 0 20px;
-}
-
 #page_footer {
     position:absolute;
     height:100px;
     width:100%;
-}
-
-#footer_content {
-    width:500px;
-    height:100%;
-    margin-left:220px;
 }
 
 .footer_separator {
@@ -104,10 +94,6 @@ blockquote {
 }
 
 #posts {
-    /*width:60%;*/
-    width:500px;
-    max-width:500px;
-    min-width:200px;
     float:none;
 }
 

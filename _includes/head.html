@@ -4,7 +4,22 @@
 
     <head>
         <meta charset='utf-8'>
-        <link rel="stylesheet" type="text/css" href="/all.css?break-cache=1" />
+
+        <link rel="stylesheet" type="text/css" href="/default.css" media="screen, handheld, print, projection" />
+        <link rel="stylesheet" type="text/css" href="/mobile.css" media="screen and (min-device-width:320px)" />
+        <link rel="stylesheet" type="text/css" href="/desktop.css" media="screen and (min-device-width:768px) and (min-width:768px), print, projection" />
+        <!--[if lt IE 9]>
+            <link href="desktop.css" rel="stylesheet" media="all">
+        <![endif]-->
+
+        <!--[if lt IE 8]>
+            <link href="ie_7.css" rel="stylesheet" media="all">
+        <![endif]-->
+
+        <!--[if lt IE 7]>
+            <link href="crapie.css" rel="stylesheet" media="all">
+        <![endif]-->
+
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 
         {% if page.title %}

@@ -1,0 +1,23 @@
+---
+---
+{% include normalize.css %}
+{% include colors.css %}
+{% include main.css %}
+
+#posts {
+    width:500px;
+    max-width:500px;
+    min-width:200px;
+    margin-left:85px;
+}
+
+#footer_content {
+    width:500px;
+    height:100%;
+    margin-left:85px;
+}
+
+#page_content {
+    padding: 0 20px;
+}
+

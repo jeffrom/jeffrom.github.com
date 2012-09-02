@@ -8,6 +8,10 @@ body, html {
     width:auto;
 }
 
+hr {
+    margin:6px 0;
+}
+
 #posts {
     width:500px;
     max-width:500px;
@@ -33,7 +37,7 @@ body, html {
 
 .post_date {
     position:relative;
-    top:26px;
+    top:19px;
     left:-154px;
     float:right;
     clear:none;

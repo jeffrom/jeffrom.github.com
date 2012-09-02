@@ -4,6 +4,10 @@
 {% include colors.css %}
 {% include main.css %}
 
+body, html {
+    width:auto;
+}
+
 #posts {
     width:500px;
     max-width:500px;
@@ -25,5 +29,12 @@
 
 #page_content {
     padding: 0 20px;
+}
+
+.post_date {
+    position:relative;
+    top:26px;
+    left:-154px;
+    float:right;
 }
 

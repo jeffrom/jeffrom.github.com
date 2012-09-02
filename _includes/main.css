@@ -112,16 +112,6 @@ blockquote {
     font-size:35px;
 }
 
-.post_date {
-    /*float:left;
-    margin-top:8px;
-    margin-left:10px;*/
-    position:relative;
-    top:26px;
-    left:-154px;
-    float:right;
-}
-
 .post_content {
     font-size:16px;
     line-height:20px;

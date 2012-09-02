@@ -9,3 +9,16 @@
     margin:15px;
 }
 
+@media only screen and (min-device-width:320px) {
+    body, html {
+        width:320px;
+    }
+}
+
+.post_date {
+    float:none;
+    clear:both;
+    margin-bottom:-20px;
+    margin-left:2px;
+}
+

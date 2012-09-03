@@ -110,6 +110,16 @@ blockquote {
 
 }
 
+.post_preview {
+    font-weight:200;
+    margin-top:18px;
+}
+
+.post_preview h1, .post_preview h2, .post_preview h3 {
+    font-size:16px;
+    line-height:20px;
+}
+
 .post_title {
     float:left;
     text-align:center;

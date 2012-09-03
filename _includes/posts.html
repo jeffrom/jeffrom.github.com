@@ -19,8 +19,8 @@
 
                 <div class="clear"></div>
                 <hr class="sep">
-                <div class="post_content lightblack">
-                    {{ post.content | truncatewords:100 }}
+                <div class="post_preview post_content lightblack">
+                    {{ post.content | strip_html | newline_to_br | truncatewords:100 | replace:'<br />...','...<br />' }}
                 </div>
                 <div class="post_footer"></div>
             </div>

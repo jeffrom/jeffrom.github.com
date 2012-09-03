@@ -73,6 +73,15 @@ Here's a:
 
 Here's some code:
 
+    {% highlight js %}
+
     var asdf = 'qwer';
     asdf += asdf.length ? 1 : 0;
+    if (asdf) {
+        console.log('asdfff' + asdf);
+    } else {
+        console.log('asdfff' + asdf);
+    }
+
+    {% endhighlight %}
 

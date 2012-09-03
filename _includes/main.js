@@ -80,7 +80,7 @@ function setup_events() {
 $().ready(function() {
 
     Main.$post_images = $('#posts img');
-    $('#posts.all_posts img').parent().hide();
+    $('#posts.all_posts img').hide();
 
     //Resize.on_resize();
     if (!Main.$post_images.length) {

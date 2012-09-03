@@ -1,8 +1,5 @@
 ---
 ---
-{% include normalize.css %}
-{% include colors.css %}
-{% include main.css %}
 
 body, html {
     width:auto;

@@ -1,8 +1,6 @@
 ---
 ---
 
-{% include normalize.css %}
-{% include colors.css %}
 {% include main.css %}
 
 #posts {
@@ -25,8 +23,6 @@
 }
 
 .post_date {
-    float:none;
-    clear:both;
     margin-bottom:-20px;
     margin-left:2px;
 }

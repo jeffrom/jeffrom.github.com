@@ -9,7 +9,9 @@
                 <div class="post_date">
                     <em>{{ post.date | date_to_long_string }}</em>
                 </div>
+
                 {% if post.subtitle %}
+                <div class="clear"></div>
                 <div class="post_subtitle">
                     {{ post.subtitle }}
                 </div>

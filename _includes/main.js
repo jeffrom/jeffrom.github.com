@@ -38,18 +38,35 @@ var PreLoad = (function() {
 
     };
 
+    var $bg_elem = [];
+    my.get_bg_elem = function() {
+        $bg_elem = $bg_elem.length ? $bg_elem : $('#bg_image');
+        return $bg_elem;
+    };
+
+    my.set_bg_url = function(url) {
+        my.get_bg_elem().css({
+            'background-image': 'url(' + url + ')'
+        })
+    };
+
     my.preload_bg = function(url) {
         url = url || my.bg_url;
         var img = new Image();
         img.src = url;
+
+        if (img.complete) { // already cached
+            my.set_bg_url(url);
+            my.get_bg_elem().show();
+            return;
+        }
+
         cache[url] = img;
 
         function bg_loaded(urls) {
             var url = urls[0];
-            $('#bg_image').css({
-                'background-image': 'url(' + url + ')'
-            })
-            .fadeIn(my.fade_interval);
+            my.set_bg_url(url);
+            my.get_bg_elem().fadeIn(my.fade_interval);
         }
 
         setTimeout(function() {
@@ -58,6 +75,9 @@ var PreLoad = (function() {
 
     };
 
+    /*
+     * run this in $(window).load() for the cache test to work
+     */
     my.init = function() {
         my.preload_bg();
     };

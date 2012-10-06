@@ -20,8 +20,9 @@
                 <div class="clear"></div>
                 <hr class="sep">
                 <div class="post_preview post_content lightblack">
-                    {{ post.content | strip_html | newline_to_br | truncatewords:100 | replace:'<br />...','...<br />' }}
+                    {{ post.content | replace:'more start -->','' | replace:'<!-- more end','' }}
                 </div>
+                <a class="underline blue" href="{{ post.url }}">&#8627; read the rest</a>
                 <div class="post_footer"></div>
             </div>
         </div>

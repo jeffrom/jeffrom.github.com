@@ -5,7 +5,7 @@ var Main = (function() {
     return my;
 }());
 
-var Resize = (function() {
+var Resize = (function($) {
     var my = {};
     var content_height;
     var $posts = $('#posts, #footer_content');
@@ -22,8 +22,30 @@ var Resize = (function() {
         $page_footer.addClass('grey_bg').show();
     };
 
+    my.stop_waiting = false;
+    window.overall_timeout = null;
+    my.wait_for_disqus = function() {
+        if (my.stop_waiting) return;
+        if (!window.overall_timeout && $('#disqus_thread iframe').length) {
+            window.overall_timeout = setTimeout(function() {
+                my.stop_waiting = true;
+            }, 20000);
+        }
+
+        var $disqus = $('#disqus_thread iframe');
+        if (!$disqus.length) {
+            setTimeout(my.wait_for_disqus, 50);
+            return;
+        }
+        my.set_doc_height();
+
+        if (window.overall_timeout) {
+            clearTimeout(window.overall_timeout);
+        }
+    };
+
     return my;
-}());
+}(jQuery));
 
 function setup_events() {
     $(window).on('resize', function(e) {
@@ -57,5 +79,7 @@ $(window).load(function() {
     if (Main.$post_images && Main.$post_images.length) {
         Resize.set_doc_height();
     }
+
+    Resize.wait_for_disqus();
 });
 

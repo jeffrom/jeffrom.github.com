@@ -1,4 +1,70 @@
 
+var PreLoad = (function() {
+    var my = {};
+    var cache = {};
+
+    my.bg_url = '/img/bg.jpg';
+    my.fade_interval = 500;
+
+    my.preload_success = function(urls) {
+
+    };
+
+    my.check_finished = function(urls, callback) {
+        callback = callback === undefined ? my.preload_success : callback;
+        var i, l;
+        var url, img;
+
+        for (i = 0, l = urls.length; i < l; i++) {
+            url = urls[i];
+            img = cache[url];
+            if (!img.complete) {
+                setTimeout(function() {
+                    my.check_finished(urls, callback);
+                }, 20);
+                return;
+            }
+        }
+
+        if (callback) {
+            callback(urls);
+        }
+
+        for (i = 0, l = urls.length; i < l; i++) {
+            url = urls[i];
+            cache[url] = null;
+            delete cache[url];
+        }
+
+    };
+
+    my.preload_bg = function(url) {
+        url = url || my.bg_url;
+        var img = new Image();
+        img.src = url;
+        cache[url] = img;
+
+        function bg_loaded(urls) {
+            var url = urls[0];
+            $('#bg_image').css({
+                'background-image': 'url(' + url + ')'
+            })
+            .fadeIn(my.fade_interval);
+        }
+
+        setTimeout(function() {
+            my.check_finished([url], bg_loaded);
+        }, 5);
+
+    };
+
+    my.init = function() {
+        my.preload_bg();
+    };
+
+    return my;
+}());
+
 var Main = (function() {
     var my = {};
 
@@ -76,6 +142,8 @@ $().ready(function() {
 });
 
 $(window).load(function() {
+    PreLoad.init();
+
     if (Main.$post_images && Main.$post_images.length) {
         Resize.set_doc_height();
     }

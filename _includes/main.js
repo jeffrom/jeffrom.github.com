@@ -79,7 +79,9 @@ var PreLoad = (function() {
      * run this in $(window).load() for the cache test to work
      */
     my.init = function() {
-        my.preload_bg();
+        if ($(window).width() > 320) {
+            my.preload_bg();
+        }
     };
 
     return my;

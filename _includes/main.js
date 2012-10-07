@@ -112,7 +112,7 @@ var Resize = (function($) {
 
     my.stop_waiting = false;
     window.overall_timeout = null;
-    my.wait_for_disqus = function() {
+    my.wait_for_disqus = function(callback) {
         if (my.stop_waiting) return;
         if (!window.overall_timeout && $('#disqus_thread iframe').length) {
             window.overall_timeout = setTimeout(function() {
@@ -125,10 +125,59 @@ var Resize = (function($) {
             setTimeout(my.wait_for_disqus, 50);
             return;
         }
-        my.set_doc_height();
 
         if (window.overall_timeout) {
             clearTimeout(window.overall_timeout);
+        }
+
+        if (callback) {
+            callback();
+        }
+    };
+
+    my.get_window_height = function() {
+        var inner_h = window.innerHeight;
+        if (!inner_h) {
+            if (document.compatMode || $.support.boxModel) {
+                var dom_obj = document.compatMode === 'CSS1Compat' ?
+                    document.documentElement :
+                    document.body
+                inner_h = dom_obj.innerHeight;
+            }
+        }
+        return inner_h;
+    };
+
+    my.elem_in_view = function($elem) {
+        var inner_h = my.get_window_height();
+        var off_h = window.pageYOffset || document.scrollTop || document.body.scrollTop;
+
+        var elem_height = $elem.height();
+        var elem_top = $elem.offset().top;
+
+        if (elem_top + elem_height > off_h
+                && elem_top < off_h + inner_h) {
+                    return (off_h + inner_h) - elem_top ;
+            }
+        return false;
+    };
+
+    var $background_image = [];
+    var $page_footer = [];
+    var footer_set;
+    my.handle_background_image = function(e) {
+        $background_image = $background_image.length ? $background_image : $('#bg_image');
+        $page_footer = $page_footer.length ? $page_footer : $('#page_footer');
+        var pixels_from_bottom = my.elem_in_view($page_footer);
+
+        if (pixels_from_bottom) {
+            $background_image.css('margin-top', -pixels_from_bottom + 'px');
+            footer_set = true;
+        } else {
+            if (!footer_set) return;
+
+            $background_image.css('margin-top', 'inherit');
+            footer_set = false;
         }
     };
 
@@ -136,9 +185,14 @@ var Resize = (function($) {
 }(jQuery));
 
 function setup_events() {
-    $(window).on('resize', function(e) {
-        //Resize.on_resize();
-        Resize.set_doc_height();
+    $(window).on({
+        'resize': function(e) {
+            Resize.set_doc_height();
+            Resize.handle_background_image();
+        },
+        'scroll': function(e) {
+            Resize.handle_background_image(e);
+        }
     });
 
     $('#posts').on({
@@ -156,10 +210,11 @@ $().ready(function() {
     Main.$post_images = $('#posts img');
     $('#posts.all_posts img').hide();
 
-    //Resize.on_resize();
     if (!Main.$post_images.length) {
         Resize.set_doc_height();
     }
+
+    Resize.handle_background_image();
     setup_events();
 });
 
@@ -170,6 +225,9 @@ $(window).load(function() {
         Resize.set_doc_height();
     }
 
-    Resize.wait_for_disqus();
+    Resize.wait_for_disqus(function() {
+        Resize.set_doc_height();
+        Resize.handle_background_image();
+    });
 });
 

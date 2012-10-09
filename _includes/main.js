@@ -7,7 +7,18 @@ var PreLoad = (function() {
     my.fade_interval = 500;
 
     my.preload_success = function(urls) {
+        //console.log('success\n' + urls.join('\n'));
+        //console.log($('#bg_image').css('background-image'));
+    };
 
+    my.get_img = function(url) {
+        var img = cache[url];
+        if (!img) {
+            img = new Image();
+            img.src = url;
+            cache[url] = img;
+        }
+        return img;
     };
 
     my.check_finished = function(urls, callback) {
@@ -17,11 +28,11 @@ var PreLoad = (function() {
 
         for (i = 0, l = urls.length; i < l; i++) {
             url = urls[i];
-            img = cache[url];
+            img = my.get_img(url);
             if (!img.complete) {
                 setTimeout(function() {
                     my.check_finished(urls, callback);
-                }, 20);
+                }, 10);
                 return;
             }
         }
@@ -89,6 +100,63 @@ var PreLoad = (function() {
 
 var Main = (function() {
     var my = {};
+    my.$post_images = $('#posts img');
+
+    my.show_first_image = function() {
+        var $posts = $('.post');
+        var $post;
+        var i, l;
+
+        for (i = 0, l = $posts.length; i < l; i++) {
+            $post = $($posts[i]);
+            if (!$post.length) continue;
+
+            var $post_images = $post.find('img');
+            if (!$post_images.length) continue;
+
+            var $container = $post.parent().parent();
+            var $post_link = $container.find('a');
+            var href;
+            if ($post_link.length) {
+                href = $post_link[0].href;
+            }
+            if (href === undefined) continue;
+
+            var $image = $($post_images[0]);
+            $image.addClass('post_image_preview')
+                .wrap("<a class='preview_wrapper' href='" + href + "' />")
+                .show();
+        }
+
+    };
+
+    my.set_article_links = function() {
+        var $links = $('a');
+        var $link;
+        var href;
+        var i, l;
+
+        for (i = 0, l = $links.length; i < l; i++) {
+            href = $links[i].href || [];
+            if (href[0] !== '/' && href.slice(0, 6) !== 'mailto') {
+                $link = $($links[i]);
+                $link.attr('target', '_blank');
+            }
+        }
+    };
+
+    my.handle_page = function() {
+        if (window.location.pathname === '/') {
+            $('#posts.all_posts img').hide();
+            my.show_first_image();
+            Resize.set_doc_height();
+        } else {
+            Main.set_article_links();
+            if (!my.$post_images.length) {
+                Resize.set_doc_height();
+            }
+        }
+    };
 
     return my;
 }());
@@ -157,7 +225,7 @@ var Resize = (function($) {
 
         if (elem_top + elem_height > off_h
                 && elem_top < off_h + inner_h) {
-                    return (off_h + inner_h) - elem_top ;
+                    return (off_h + inner_h) - elem_top;
             }
         return false;
     };
@@ -195,7 +263,8 @@ function setup_events() {
         }
     });
 
-    $('#posts').on({
+    var $posts = $('#posts');
+    $posts.on({
         'mouseenter': function(e) {
 
         },
@@ -206,13 +275,8 @@ function setup_events() {
 }
 
 $().ready(function() {
-
-    Main.$post_images = $('#posts img');
-    $('#posts.all_posts img').hide();
-
-    if (!Main.$post_images.length) {
-        Resize.set_doc_height();
-    }
+    //PreLoad.check_finished(['http://0.0.0.0:4000/img/bg.jpg']);
+    Main.handle_page();
 
     Resize.handle_background_image();
     setup_events();
@@ -225,9 +289,11 @@ $(window).load(function() {
         Resize.set_doc_height();
     }
 
+    Resize.handle_background_image();
+
+    Resize.set_doc_height();
     Resize.wait_for_disqus(function() {
         Resize.set_doc_height();
-        Resize.handle_background_image();
     });
 });
 

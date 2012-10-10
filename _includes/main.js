@@ -137,9 +137,9 @@ var Main = (function() {
         var i, l;
 
         for (i = 0, l = $links.length; i < l; i++) {
-            href = $links[i].href || [];
+            $link = $($links[i]);
+            href = $link.attr('href') || [];
             if (href[0] !== '/' && href.slice(0, 6) !== 'mailto') {
-                $link = $($links[i]);
                 $link.attr('target', '_blank');
             }
         }

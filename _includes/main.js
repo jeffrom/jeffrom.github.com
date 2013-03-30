@@ -101,15 +101,15 @@ var PreLoad = (function() {
 
 var Main = (function() {
     var my = {};
+    my.$posts = $('.post');
     my.$post_images = $('#posts img');
 
     my.show_first_image = function() {
-        var $posts = $('.post');
         var $post;
         var i, l;
 
-        for (i = 0, l = $posts.length; i < l; i++) {
-            $post = $($posts[i]);
+        for (i = 0, l = my.$posts.length; i < l; i++) {
+            $post = $(my.$posts[i]);
             if (!$post.length) continue;
 
             var $post_images = $post.find('img');
@@ -148,6 +148,7 @@ var Main = (function() {
 
     my.handle_page = function() {
         if (window.location.pathname === '/') {
+            my.handle_read_more();
             $('#posts.all_posts img').hide();
             my.show_first_image();
             Resize.set_doc_height();
@@ -158,6 +159,39 @@ var Main = (function() {
             }
         }
     };
+
+    my.get_comments = function($el) {
+        var el = $el[0];
+
+        function traverse(el) {
+            if (el === undefined) return [];
+
+            var comments = [];
+            if (el.nodeName == '#comment' || el.nodeType == 8) {
+                comments[comments.length] = el;
+            } else if (el.childNodes.length) {
+                for (var i = 0, l = el.childNodes.length; i < l; i++) {
+                    comments = comments.concat(traverse(el.childNodes[i]));
+                }
+            }
+            return comments;
+        }
+
+        return traverse(el);
+    };
+
+    my.handle_read_more = function() {
+        var $post, comments;
+        var i, l;
+
+        for (i = 0, l = my.$posts.length; i < l; i++) {
+            $post = $(my.$posts[i]);
+            comments = my.get_comments($post);
+            if (!comments.length) {
+                $post.find('a:last').hide();
+            }
+        }
+    }
 
     return my;
 }());

@@ -62,6 +62,7 @@ var PreLoad = (function() {
     };
 
     my.preload_bg = function(url) {
+        return;
         url = url || my.bg_url;
         var img = new Image();
         img.src = url;

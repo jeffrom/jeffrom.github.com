@@ -14,5 +14,5 @@ the vultures say in unison
 love flew closer to take a look
 "stop following me"
 "i've found my calling"
-"fuck this, i'm out of here"
+"fuck this, i'm leaving"
 

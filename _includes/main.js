@@ -244,7 +244,7 @@ var Resize = (function($) {
       if (document.compatMode || $.support.boxModel) {
         var dom_obj = document.compatMode === 'CSS1Compat' ?
           document.documentElement :
-          document.body
+          document.body;
         inner_h = dom_obj.innerHeight;
       }
     }

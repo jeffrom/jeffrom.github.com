@@ -9,7 +9,7 @@
 
 @media only screen and (min-device-width:320px) {
     #thepage {
-        width:320px;
+        width:inherit;
     }
 }
 

@@ -217,6 +217,7 @@ var Resize = (function($) {
   window.overall_timeout = null;
   my.wait_for_disqus = function(callback) {
     if (my.stop_waiting) return;
+    // give up in 20 seconds if it hasn't loaded
     if (!window.overall_timeout && $('#disqus_thread iframe').length) {
       window.overall_timeout = setTimeout(function() {
         my.stop_waiting = true;
@@ -277,7 +278,7 @@ var Resize = (function($) {
       $background_image.css('margin-top', -pixels_from_bottom + 'px');
       footer_set = true;
     } else {
-      if (!footer_set) return;
+      if (!footer_set) return true;
 
       $background_image.css('margin-top', 'inherit');
       footer_set = false;
@@ -295,6 +296,7 @@ function setup_events() {
     },
     'scroll': function(e) {
       Resize.handle_background_image(e);
+      return true;
     }
   });
 
@@ -325,10 +327,6 @@ $(window).load(function() {
   }
 
   Resize.handle_background_image();
-
   Resize.set_doc_height();
-  Resize.wait_for_disqus(function() {
-    Resize.set_doc_height();
-  });
 });
 

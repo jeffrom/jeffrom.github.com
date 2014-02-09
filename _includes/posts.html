@@ -1,31 +1,31 @@
-        {% for post in paginator.posts %}
+{% for post in paginator.posts %}
 
-        <div class="post_container">
-            <div class="post">
-                <a class="post_title underline blue" href="{{ post.url }}">
-                    {{ post.title }}
-                </a>
-                <div class="mobile_clear"></div>
-                <div class="post_date">
-                    <em>{{ post.date | date_to_long_string }}</em>
-                </div>
+<div class="post_container">
+  <div class="post">
+    <a class="post_title underline blue" href="{{ post.url }}">
+      {{ post.title }}
+    </a>
+    <div class="mobile_clear"></div>
+    <div class="post_date">
+      <em>{{ post.date | date_to_long_string }}</em>
+    </div>
 
-                {% if post.subtitle %}
-                <div class="clear"></div>
-                <div class="post_subtitle">
-                    {{ post.subtitle }}
-                </div>
-                {% endif %}
+    {% if post.subtitle %}
+    <div class="clear"></div>
+    <div class="post_subtitle">
+      {{ post.subtitle }}
+    </div>
+    {% endif %}
 
-                <div class="clear"></div>
-                <hr class="sep">
-                <div class="post_preview post_content lightblack">
-                    {{ post.content | replace:'more start -->','' | replace:'<!-- more end','' }}
-                </div>
-                <a class="underline blue" href="{{ post.url }}">&#8627; read the rest</a>
-                <div class="post_footer"></div>
-            </div>
-        </div>
+    <div class="clear"></div>
+    <hr class="sep">
+    <div class="post_preview post_content lightblack">
+      {{ post.content | replace:'more start -->','' | replace:'<!-- more end','' }}
+    </div>
+    <a class="underline blue" href="{{ post.url }}">&#8627; read the rest</a>
+    <div class="post_footer"></div>
+  </div>
+</div>
 
-        {% endfor %}
+{% endfor %}
 

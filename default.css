@@ -3,6 +3,7 @@
 
 /*
  * This contains the bare minimum css to display the site
+ * XXX normalize may make more sense in mobile.css
  */
 
 {% include normalize.css %}

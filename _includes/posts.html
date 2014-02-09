@@ -2,9 +2,11 @@
 
 <div class="post_container">
   <div class="post">
-    <a class="post_title underline blue" href="{{ post.url }}">
-      {{ post.title }}
-    </a>
+    <h1>
+      <a class="post_title underline blue" href="{{ post.url }}">
+        {{ post.title }}
+      </a>
+    </h1>
     <div class="mobile_clear"></div>
     <div class="post_date">
       <em>{{ post.date | date_to_long_string }}</em>
@@ -12,9 +14,9 @@
 
     {% if post.subtitle %}
     <div class="clear"></div>
-    <div class="post_subtitle">
+    <h2 class="post_subtitle">
       {{ post.subtitle }}
-    </div>
+    </h2>
     {% endif %}
 
     <div class="clear"></div>
@@ -28,4 +30,5 @@
 </div>
 
 {% endfor %}
+
 

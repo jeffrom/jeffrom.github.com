@@ -1,49 +1,49 @@
 {% include head.html %}
 
-    <div id="posts" class="centered container">
-        <div class="post_container">
-            <div class="post">
-                <div class="post_title blue">
-                    {{ page.title }}
-                </div>
+<div id="posts" class="centered container">
+  <div class="post_container">
+    <div class="post">
+      <div class="post_title blue">
+        {{ page.title }}
+      </div>
 
-                <div class="mobile_clear"></div>
-                <div class="post_date">
-                    <em>{{ page.date | date_to_long_string }}</em>
-                </div>
+      <div class="mobile_clear"></div>
+      <div class="post_date">
+        <em>{{ page.date | date_to_long_string }}</em>
+      </div>
 
-                {% if page.subtitle %}
-                <div class="clear"></div>
-                <div class="post_subtitle">
-                    {{ page.subtitle }}
-                </div>
-                {% endif %}
+      {% if page.subtitle %}
+      <div class="clear"></div>
+      <div class="post_subtitle">
+        {{ page.subtitle }}
+      </div>
+      {% endif %}
 
-                <div class="clear"></div>
-                <hr class="sep">
-                <div class="post_content lightblack">
-                    {{ content }}
-                </div>
+      <div class="clear"></div>
+      <hr class="sep">
+      <div class="post_content lightblack">
+        {{ content }}
+      </div>
 
-                <div id="disqus_thread"></div>
+      <div id="disqus_thread"></div>
 
-                <div class="post_footer"></div>
-            </div>
-        </div>
+      <div class="post_footer"></div>
     </div>
+  </div>
+</div>
 
 {% include footer.html %}
 
 <script type="text/javascript">
-    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR
-       WEBPAGE * * */
+/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR
+   WEBPAGE * * */
 
 // required: replace example with your forum shortname
 var disqus_shortname = 'jeffro';
 
 function disqus_config() {
   this.callbacks.onReady.push(function() {
-      Resize.set_doc_height();
+    Resize.set_doc_height();
   });
 }
 

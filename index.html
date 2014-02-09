@@ -3,20 +3,20 @@ layout: default
 
 ---
 
-    <div id="posts" class="container all_posts">
-        {% include posts.html %}
-    </div>
+<div id="posts" class="container all_posts">
+  {% include posts.html %}
+</div>
 
-    <div class="footer_separator"></div>
-    {% if paginator.previous_page %}
-    {% if paginator.previous_page == 1 %}
-    <a class="nav_link" href="/">&laquo; Back</a>
-    {% else %}
-    <a class="nav_link" href="/page{{ paginator.previous_page }}">&laquo; Back</a>
-    {% endif %}
-    {% endif %}
+<div class="footer_separator"></div>
+{% if paginator.previous_page %}
+{% if paginator.previous_page == 1 %}
+<a class="nav_link" href="/">&laquo; Back</a>
+{% else %}
+<a class="nav_link" href="/page{{ paginator.previous_page }}">&laquo; Back</a>
+{% endif %}
+{% endif %}
 
-    {% if paginator.next_page %}
-    <a class="nav_link" href="/page{{ paginator.next_page }}">Next &raquo;</a>
-    {% endif %}
+{% if paginator.next_page %}
+<a class="nav_link" href="/page{{ paginator.next_page }}">Next &raquo;</a>
+{% endif %}
 

@@ -1,0 +1,109 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><title>OS Customization Is for You | Jeff Martin</title><meta name=viewport content="width=device-width,initial-scale=1"><link href=/main.7c584.css rel=stylesheet><link rel=canonical href=/posts/os-customization-is-for-you/><meta name=theme-color content="#ffffff"></head><body><script>window.passToJS={};</script><div id=content><strong>OS Customization Is for You</strong><hr><p>I got a new, modern laptop recently. This time around, I moved back to linux from OSX.
+Containerized workloads in particular for me have been annoying on OSX for a while. Linux
+is a nicer OS if you are spending a lot of your time writing and building code.
+Everywhere I&rsquo;ve worked, there&rsquo;s always one application that has a large enough codebase to
+cause <a href=https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/2>filesystem slowness</a> to become frustrating. Most of my time on
+computers is spent between a terminal and a browser, so I don&rsquo;t have a particularly
+complex workflow. This post wont be very interesting to you, unless you like computers and
+customizing your laptop, or you hate customization and want to explore that.</p><p>It&rsquo;s definitely true that compared to OSX, setting up linux takes a lot of time. It takes
+2 hours to set up a macbook because the defaults are mostly the best. There are annoying
+differences between darwin and linux, but it&rsquo;s easy enough to work around then, and
+because the overall experience is good, it&rsquo;s fundamentally out of your way in a way you
+stop noticing over time. That&rsquo;s a huge benefit to OSX.</p><p>So if you use linux, you may as well just commit to do some tweaking. That can be as
+little as bootstrapping configuration files and installing some preferred applications,
+through using a self-built kernel. In a few days you can create a more or less
+bootstrap-capable, more or less optimal workflow for yourself, and while there is a lot of
+wisdom in keeping tweaks minimal so muscle memory translates to different machines, your
+laptop is still the primary means through which a lot of us are using computers.</p><p>So I decided to spend a few days doing tweaks, mostly porting the few common workflows I
+have over from OSX, or replacing them with a reasonable alternative. I ended up spending
+the most time playing with <a href=https://www.nerdfonts.com/>nerd fonts</a> and <a href=https://github.com/tmux/tmux>tmux</a>. I made my terminal
+bar look something like my menu bar. Here is the menu bar:</p><p><img src=img/menubar.png alt="My menu bar"></p><p>Here is the terminal bar:</p><p><img src=img/tmuxbar.png alt="My tmux status"></p><p>They have some similarities, at least in how its components are placed. The terminal
+status has a lot more going on than the desktop one. It&rsquo;s easier for me to get to a menu
+bar I like in the terminal, since it&rsquo;s just a line of characters, plus I spend a lot more
+time there, so that is better for me. Nerd fonts are nice here, since real estate is at a
+premium, and the icons are unobtrusive (read: not distracting). In particular, it&rsquo;s easy
+to see, at a glance, what&rsquo;s happening in a tab. If a program is running, there&rsquo;s a little
+Tux to the left of it. If it&rsquo;s running as root, there&rsquo;s a cube. If I&rsquo;m in a directory with
+a git repository, there&rsquo;s an icon for that too. The clock and battery indicator are very
+useful for me, since I usually work in a fullscreen terminal, and can lose track of the
+time. It&rsquo;s easy to go from here to integrating a pomodoro timer, or any other tool.
+Last, the CPU and memory indicators are cute, and I&rsquo;ve found they come in handy from time
+to time.</p><p>To do this customization, I used a combination of plugins, other peoples hacks, and my
+own hacks:</p><ul><li>a patched font</li><li>a fallback font for nerd fonts, supported by the terminal (kitty)</li><li>tmux plugins</li><li>shell configuration</li><li>forking a tmux theme (gruvbox!)</li><li>writing a <a href=https://github.com/jeffrom/tinygraph>small graphing tool</a></li></ul><p>That&rsquo;s a lot that needs to work together. I get that&rsquo;s not for everyone! There are easier
+ways to get this all working than what I did. For example, there are plenty of fonts that
+don&rsquo;t need to be patched in order to work nicely with kitty. Kitty by itself could
+probably handle a lot of what tmux does too. There are surely plenty of already existing
+tools to print unicode graphs. All of these things can also be done using other terminals
+or window managers, in many cases likely with less configuration. All I can really say to
+that is, I leveraged the tools I like to use so I can use them according to muscle and
+visual memory. It&rsquo;s pretty tailored to me specifically, meaning it works according to my
+principles for computer work and play. If you care about this kind of thing, I think its
+worth exploring, particularly if you are someone who builds with computers.</p><p>If, for some reason, you don&rsquo;t write code, and you&rsquo;re still reading, here is where your
+eyes will really glaze over. I&rsquo;m going to show some code I used to get some of the more
+custom behavior out of this setup. In order to accomplish the title updates for directory
+change or program execution, here&rsquo;s what I did in <code>~/.bashrc</code>. First, to handle updating
+the title when commands are executed:</p><div class=highlight><pre style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#60a0b0;font-style:italic># runs before command runs</span>
+tmux_prompt_hook<span style=color:#666>(</span><span style=color:#666>)</span> <span style=color:#666>{</span>
+    <span style=color:#007020;font-weight:700>if</span> <span style=color:#666>[</span><span style=color:#666>[</span> <span style=color:#4070a0>&#34;</span><span style=color:#bb60d5>$BASH_COMMAND</span><span style=color:#4070a0>&#34;</span> !<span style=color:#666>=</span> <span style=color:#4070a0>&#34;</span><span style=color:#bb60d5>$PROMPT_COMMAND</span><span style=color:#4070a0>&#34;</span> <span style=color:#666>]</span><span style=color:#666>]</span>; <span style=color:#007020;font-weight:700>then</span>
+        <span style=color:#bb60d5>prefix</span><span style=color:#666>=</span><span style=color:#4070a0>&#34;&lt;nerdfont tux icon&gt; &#34;</span>
+        <span style=color:#bb60d5>out</span><span style=color:#666>=</span><span style=color:#4070a0>&#34;</span><span style=color:#007020;font-weight:700>$(</span><span style=color:#007020>echo</span> <span style=color:#4070a0>&#34;</span><span style=color:#bb60d5>$BASH_COMMAND</span><span style=color:#4070a0>&#34;</span> | awk <span style=color:#4070a0>&#39;{print $1;}&#39;</span><span style=color:#007020;font-weight:700>)</span><span style=color:#4070a0>&#34;</span>
+        <span style=color:#007020;font-weight:700>case</span> <span style=color:#bb60d5>$out</span> in
+            vi|vim<span style=color:#666>)</span>
+                <span style=color:#bb60d5>prefix</span><span style=color:#666>=</span><span style=color:#4070a0>&#34;&#34;</span>
+                <span style=color:#bb60d5>out</span><span style=color:#666>=</span><span style=color:#4070a0>&#34;&lt;nerdfont vim icon&gt;&#34;</span>
+                ;;
+            sudo<span style=color:#666>)</span>
+                <span style=color:#bb60d5>prefix</span><span style=color:#666>=</span><span style=color:#4070a0>&#34;&lt;nerdfont cube icon&gt; &#34;</span>
+                <span style=color:#bb60d5>out</span><span style=color:#666>=</span><span style=color:#4070a0>&#34;</span><span style=color:#007020;font-weight:700>$(</span><span style=color:#007020>echo</span> <span style=color:#4070a0>&#34;</span><span style=color:#bb60d5>$BASH_COMMAND</span><span style=color:#4070a0>&#34;</span> | awk <span style=color:#4070a0>&#39;{print $2;}&#39;</span><span style=color:#007020;font-weight:700>)</span><span style=color:#4070a0>&#34;</span>
+                ;;
+            hub<span style=color:#666>)</span>
+                <span style=color:#bb60d5>out</span><span style=color:#666>=</span><span style=color:#4070a0>&#34;git&#34;</span>
+                ;;
+        <span style=color:#007020;font-weight:700>esac</span>
+
+        <span style=color:#60a0b0;font-style:italic># send ANSI code that tmux uses to update the title</span>
+        <span style=color:#007020>echo</span> -ne <span style=color:#4070a0>&#34;</span><span style=color:#4070a0>\033k</span><span style=color:#70a0d0;font-style:italic>${</span><span style=color:#bb60d5>prefix</span><span style=color:#70a0d0;font-style:italic>}</span><span style=color:#70a0d0;font-style:italic>${</span><span style=color:#bb60d5>out</span><span style=color:#70a0d0;font-style:italic>}</span><span style=color:#4070a0>\033\\</span><span style=color:#4070a0>&#34;</span>
+    <span style=color:#007020;font-weight:700>fi</span>
+<span style=color:#666>}</span>
+
+<span style=color:#60a0b0;font-style:italic># update window titles in tmux</span>
+<span style=color:#007020;font-weight:700>if</span> <span style=color:#666>[</span><span style=color:#666>[</span> <span style=color:#4070a0>&#34;</span><span style=color:#bb60d5>$TMUX</span><span style=color:#4070a0>&#34;</span> !<span style=color:#666>=</span> <span style=color:#4070a0>&#34;&#34;</span> <span style=color:#666>]</span><span style=color:#666>]</span>; <span style=color:#007020;font-weight:700>then</span>
+    <span style=color:#60a0b0;font-style:italic># PROMPT_COMMAND triggers before printing the prompt</span>
+    <span style=color:#007020>export</span> <span style=color:#bb60d5>PROMPT_COMMAND</span><span style=color:#666>=</span><span style=color:#4070a0>&#39;$HOME/bin/tmux-prompt-command.sh&#39;</span>
+
+    <span style=color:#60a0b0;font-style:italic># DEBUG trap triggers before the command&#39;s process is started</span>
+    <span style=color:#007020>trap</span> tmux_prompt_hook DEBUG
+<span style=color:#007020;font-weight:700>fi</span>
+</code></pre></div><p>Here&rsquo;s a useful function to point the trap at if you want to better understand how this
+works:</p><div class=highlight><pre style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>dump_stuff<span style=color:#666>(</span><span style=color:#666>)</span> <span style=color:#666>{</span>
+    <span style=color:#007020>echo</span> <span style=color:#4070a0>&#34;</span><span style=color:#4070a0>comp_line: </span><span style=color:#bb60d5>$COMP_LINE</span><span style=color:#4070a0>&#34;</span>
+    <span style=color:#007020>echo</span> <span style=color:#4070a0>&#34;</span><span style=color:#4070a0>BASH_COMMAND: </span><span style=color:#bb60d5>$BASH_COMMAND</span><span style=color:#4070a0>&#34;</span>
+    <span style=color:#007020>echo</span> <span style=color:#4070a0>&#34;</span><span style=color:#4070a0>PROMPT_COMMAND: </span><span style=color:#bb60d5>$PROMPT_COMMAND</span><span style=color:#4070a0>&#34;</span>
+<span style=color:#666>}</span>
+</code></pre></div><p>I wrote <a href=https://github.com/jeffrom/tinygraph>tinygraph</a> to render the CPU and memory graphs. Tired of having to
+hunt around whenever I need a solution for this, I wanted a tool I could use to make
+arbitrary graphs with threshold coloring with easily customizable characters. Here&rsquo;s the
+sort of thing you can do with it:</p><div class=highlight><pre style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#bb60d5>cpu</span><span style=color:#666>=</span><span style=color:#007020;font-weight:700>$((</span><span style=color:#40a070>100</span><span style=color:#666>-</span><span style=color:#007020;font-weight:700>$(</span>vmstat <span style=color:#40a070>1</span> 2|tail -1|awk <span style=color:#4070a0>&#39;{print $15}&#39;</span><span style=color:#007020;font-weight:700>)</span><span style=color:#007020;font-weight:700>))</span>
+
+<span style=color:#bb60d5>TMUX_STATUS</span><span style=color:#666>=</span><span style=color:#40a070>1</span> tinygraph -n <span style=color:#4070a0>&#34;</span><span style=color:#bb60d5>$cpu</span><span style=color:#4070a0>&#34;</span> -t <span style=color:#40a070>100</span> <span style=color:#4070a0;font-weight:700>\
+</span><span style=color:#4070a0;font-weight:700></span>    --prefix <span style=color:#4070a0>&#34;&lt;nerdfont cpu icon&gt;&#34;</span> <span style=color:#4070a0;font-weight:700>\
+</span><span style=color:#4070a0;font-weight:700></span>    --graph equal <span style=color:#4070a0;font-weight:700>\
+</span><span style=color:#4070a0;font-weight:700></span>    --threshold <span style=color:#4070a0>&#39;60:fg=yellow,bold&#39;</span> <span style=color:#4070a0;font-weight:700>\
+</span><span style=color:#4070a0;font-weight:700></span>    --threshold <span style=color:#4070a0>&#39;83:fg=red,bold&#39;</span>
+
+<span style=color:#60a0b0;font-style:italic># see what&#39;s built in and play with thresholds by running: tinygraph --workout</span>
+</code></pre></div><p>Customization is a large topic, and this post describes a tiny part of it. There is a lot
+computer folks can do in this space to automate away toil and provide useful experiences
+for ourselves and others. What that means is strongly contested in our discussions, but
+nonetheless there is potential for significant progress. In this world that is so full of
+distractions and disinformation, technology has always had the potential to help us take
+control of our power in the world, and it still does.</p><p>It&rsquo;s very reasonable to be skeptical of technology. It is so heavily fetishized in our
+society, now more than ever in my lifetime. That fantastic framing of technology has a
+large hand in massive structural inequality and violence across society. The bytes pushed
+from megacorporations to your face happens hundreds, if not thousands of times every day.
+It is worth your time to play around with attempting to take control of it if you can.
+This post is not up to the task of addressing even that, but I hope it opens a little bit
+of space to imagine ways to start to disrupt that power in our lives, maybe even learn how
+to help each other take hold of some of it.</p><p><i>Monday, February 17 2020</i></p></div><footer><div class=footer-links><a href=/>home</a>
+<a href=/about/>about</a>
+<a href=/index.xml>rss</a></div></footer><script type=text/javascript src=/main.7c584.js></script></body></html>

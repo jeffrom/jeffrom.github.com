@@ -1,20 +1,24 @@
-<!doctype html><html lang=en-us><head><meta charset=utf-8><title>OS Customization Is for You | Jeff Martin</title><meta name=viewport content="width=device-width,initial-scale=1"><link href=/main.049a7.css rel=stylesheet><link rel=canonical href=/posts/os-customization-is-for-you/><meta name=theme-color content="#ffffff"></head><body><script>window.passToJS={};</script><div id=content><strong>OS Customization Is for You</strong><hr><p>I got a new, modern laptop recently. This time around, I moved back to linux from OSX.
-Containerized workloads in particular for me have been annoying on OSX for a while. Linux
-is a nicer OS if you are spending a lot of your time writing and building code.
-Everywhere I&rsquo;ve worked, there&rsquo;s always one application that has a large enough codebase to
-cause <a href=https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/2>filesystem slowness</a> to become frustrating. Most of my time on
-computers is spent between a terminal and a browser, so I don&rsquo;t have a particularly
-complex workflow. This post wont be very interesting to you, unless you like computers and
-customizing your laptop, or you hate customization and want to explore that.</p><p>It&rsquo;s definitely true that compared to OSX, setting up linux takes a lot of time. It takes
+<!doctype html><html lang=en-us><head><meta charset=utf-8><title>OS Customization Is for You | Jeff Martin</title><meta name=viewport content="width=device-width,initial-scale=1"><link href=/main.38bf2.css rel=stylesheet><link rel=canonical href=/posts/os-customization-is-for-you/><meta name=theme-color content="#ffffff"></head><body><script>window.passToJS={};</script><div id=content><strong>OS Customization Is for You</strong><hr><p>I got a new, modern laptop recently. This time around, I moved back to linux from OSX.
+Containerized workloads in particular for me have been annoying me on OSX for a while.
+Linux is generally a better OS if you are spending a lot of your time writing and building
+code that mostly runs on servers. OSX is generally fine about this, but everywhere I&rsquo;ve
+worked, there&rsquo;s always one application that has a large enough codebase to cause
+<a href=https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/2>filesystem slowness</a> to become frustrating. Most of my time on computers is
+spent between a terminal and a browser, so I don&rsquo;t have particularly complex workflows.
+Warning: This post likely wont be very interesting to you, unless you are interested in
+computers and customizing your laptop, or maybe you dislike customization and want to
+explore why by following along.</p><p>It&rsquo;s definitely true that compared to OSX, setting up linux takes a lot of time. It takes
 2 hours to set up a macbook because the defaults are mostly the best. There are annoying
-differences between darwin and linux, but it&rsquo;s easy enough to work around then, and
-because the overall experience is good, it&rsquo;s fundamentally out of your way in a way you
-stop noticing over time. That&rsquo;s a huge benefit to OSX.</p><p>So if you use linux, you may as well just commit to do some tweaking. That can be as
-little as bootstrapping configuration files and installing some preferred applications,
-through using a self-built kernel. In a few days you can create a more or less
-bootstrap-capable, more or less optimal workflow for yourself, and while there is a lot of
-wisdom in keeping tweaks minimal so muscle memory translates to different machines, your
-laptop is still the primary means through which a lot of us are using computers.</p><p>So I decided to spend a few days doing tweaks, mostly porting the few common workflows I
+differences between darwin and linux, but it&rsquo;s easy enough to work around them, and
+because the overall experience is good, it&rsquo;s just fundamentally out of your way to extent
+you stop noticing over time. That&rsquo;s a huge benefit to OSX, and linux just doesn&rsquo;t have
+that. Buying a computer with linux preinstalled may help somewhat, but overall, you&rsquo;ll
+likely need to expend some energy finding a suitable configuration.</p><p>If you use linux, you may as well just commit to do some tweaking. That can be as little
+as bootstrapping configuration files and installing some preferred applications, through
+installing a modified kernel. In a few days you can create a more or less
+bootstrap-capable, more or less optimal workflow for yourself, and while there is wisdom
+in keeping tweaks minimal so muscle memory translates to different machines, your laptop
+is still the primary means through which many of us are using computers.</p><p>So I decided to spend a few days doing tweaks, mostly porting the few common workflows I
 have over from OSX, or replacing them with a reasonable alternative. I ended up spending
 the most time playing with <a href=https://www.nerdfonts.com/>nerd fonts</a> and <a href=https://github.com/tmux/tmux>tmux</a>. I made my terminal
 bar look something like my menu bar. Here is the menu bar:</p><p><img src=img/menubar.png alt="My menu bar"></p><p>Here is the terminal bar:</p><p><img src=img/tmuxbar.png alt="My tmux status"></p><p>They have some similarities, at least in how its components are placed. The terminal
@@ -37,8 +41,7 @@ tools to print unicode graphs. All of these things can also be done using other 
 or window managers, in many cases likely with less configuration. All I can really say to
 that is, I leveraged the tools I like to use so I can use them according to muscle and
 visual memory. It&rsquo;s pretty tailored to me specifically, meaning it works according to my
-principles for computer work and play. If you care about this kind of thing, I think its
-worth exploring, particularly if you are someone who builds with computers.</p><p>If, for some reason, you don&rsquo;t write code, and you&rsquo;re still reading, here is where your
+principles for computer work and play.</p><p>If, for some reason, you don&rsquo;t write code, and you&rsquo;re still reading, here is where your
 eyes will really glaze over. I&rsquo;m going to show some code I used to get some of the more
 custom behavior out of this setup. In order to accomplish the title updates for directory
 change or program execution, here&rsquo;s what I did in <code>~/.bashrc</code>. First, to handle updating
@@ -106,4 +109,4 @@ This post is not up to the task of addressing even that, but I hope it opens a l
 of space to imagine ways to start to disrupt that power in our lives, maybe even learn how
 to help each other take hold of some of it.</p><p><i>Monday, February 17 2020</i></p></div><footer><div class=footer-links><a href=/>home</a>
 <a href=/about/>about</a>
-<a href=/index.xml>rss</a></div></footer><script type=text/javascript src=/main.049a7.js></script></body></html>
+<a href=/index.xml>rss</a></div></footer><script type=text/javascript src=/main.38bf2.js></script></body></html>

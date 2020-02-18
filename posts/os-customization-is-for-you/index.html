@@ -12,27 +12,27 @@ explore why by following along.</p><p>It&rsquo;s definitely true that compared t
 differences between darwin and linux, but it&rsquo;s easy enough to work around them, and
 because the overall experience is good, it&rsquo;s just fundamentally out of your way to extent
 you stop noticing over time. That&rsquo;s a huge benefit to OSX, and linux just doesn&rsquo;t have
-that. Buying a computer with linux preinstalled may help somewhat, but overall, you&rsquo;ll
-likely need to expend some energy finding a suitable configuration.</p><p>If you use linux, you may as well just commit to do some tweaking. That can be as little
+that property. Buying a computer with linux preinstalled may help somewhat, but overall,
+you&rsquo;ll likely need to expend some energy to find a suitable configuration.</p><p>If you use linux, you may as well just commit to do some tweaking. That can be as little
 as bootstrapping configuration files and installing some preferred applications, through
-installing a modified kernel. In a few days you can create a more or less
+to installing a modified kernel. In a few days you can create a more or less
 bootstrap-capable, more or less optimal workflow for yourself, and while there is wisdom
 in keeping tweaks minimal so muscle memory translates to different machines, your laptop
 is still the primary means through which many of us are using computers.</p><p>So I decided to spend a few days doing tweaks, mostly porting the few common workflows I
 have over from OSX, or replacing them with a reasonable alternative. I ended up spending
 the most time playing with <a href=https://www.nerdfonts.com/>nerd fonts</a> and <a href=https://github.com/tmux/tmux>tmux</a>. I made my terminal
 bar look something like my menu bar. Here is the menu bar:</p><p><img src=img/menubar.png alt="My menu bar"></p><p>Here is the terminal bar:</p><p><img src=img/tmuxbar.png alt="My tmux status"></p><p>They have some similarities, at least in how its components are placed. The terminal
-status has a lot more going on than the desktop one. It&rsquo;s easier for me to get to a menu
-bar I like in the terminal, since it&rsquo;s just a line of characters, plus I spend a lot more
-time there, so that is better for me. Nerd fonts are nice here, since real estate is at a
+status has a lot more going on than the desktop. It&rsquo;s easier for me to get to a menu bar I
+like in the terminal, since it&rsquo;s just a line of characters, plus I spend a lot more time
+there, so that is better for me. Nerd fonts are nice here, since real estate is at a
 premium, and the icons are unobtrusive (read: not distracting). In particular, it&rsquo;s easy
 to see, at a glance, what&rsquo;s happening in a tab. If a program is running, there&rsquo;s a little
 Tux to the left of it. If it&rsquo;s running as root, there&rsquo;s a cube. If I&rsquo;m in a directory with
 a git repository, there&rsquo;s an icon for that too. The clock and battery indicator are very
 useful for me, since I usually work in a fullscreen terminal, and can lose track of the
-time. It&rsquo;s easy to go from here to integrating a pomodoro timer, or any other tool.
-Last, the CPU and memory indicators are cute, and I&rsquo;ve found they come in handy from time
-to time.</p><p>To do this customization, I used a combination of plugins, other peoples hacks, and my
+time. It&rsquo;s easy to go from here to integrating a pomodoro timer, or any other tool. Last,
+the CPU and memory indicators are cute, and I&rsquo;ve found they come in handy from time to
+time.</p><p>To do this customization, I used a combination of plugins, other peoples hacks, and my
 own hacks:</p><ul><li>a patched font</li><li>a fallback font for nerd fonts, supported by the terminal (kitty)</li><li>tmux plugins</li><li>shell configuration</li><li>forking a tmux theme (gruvbox!)</li><li>writing a <a href=https://github.com/jeffrom/tinygraph>small graphing tool</a></li></ul><p>That&rsquo;s a lot that needs to work together. I get that&rsquo;s not for everyone! There are easier
 ways to get this all working than what I did. For example, there are plenty of fonts that
 don&rsquo;t need to be patched in order to work nicely with kitty. Kitty by itself could

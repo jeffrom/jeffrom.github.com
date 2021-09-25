@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en-us"><head><script src="/livereload.js?port=1313&mindelay=10&v=2" data-no-instant defer></script>
+  <meta charset="utf-8">
+    <title>Polyester, another configuration management tool | Jeff Martin</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/main.38bf2.css" rel="stylesheet">
+
+  <link rel="canonical" href="//localhost:1313/posts/polyester/">
+  <meta name="theme-color" content="#ffffff">
+</head>
+<body>
+      <script>window.passToJS = {};</script>
+<div id="content">
+    <strong>Polyester, another configuration management tool</strong>
+    <hr />
+
+  <p>I&rsquo;ve been getting back into what&rsquo;s now called the small internet, and find myself yet again managing server configurations, deployments, and secrets. Starting out with a kubernetes cluster, which has great tooling for cluster management, I quickly found that I didn&rsquo;t want to pay the compute cost of a running cluster. My ideal cluster is as cheap as possible and basically ephemeral, with a short process for bootstrapping machines that restores the previous backed up state and updates dns.</p>
+<p>Kubernetes is nice because it scales down well, easily running all my little workloads on a single machine. However systemd scales down just fine too, while avoiding the heavy runtime cost and OCI requirements of kube, as well as providing a set of security controls that I&rsquo;m interested in learning more about (and some nice bells and whistles like <a href="https://www.freedesktop.org/software/systemd/man/systemd-socket-proxyd.html">systemd-socket-proxy</a> as well).</p>
+<p>Ansible is a fine choice for managing clusters like this, but I prefer a DSL written in a language I already tend to use frequently when I&rsquo;m managing servers. So, after a bit of looking, I decided to write my own tool, because I&rsquo;m like that.</p>
+<h1 id="polyester">polyester</h1>
+<p>It&rsquo;s called <a href="https://github.com/jeffrom/polyester">polyester</a>, and I think its neat. Here are some of its goals:</p>
+<ol>
+<li>
+<p>A simple implementation. It should be easy enough to understand what it&rsquo;s doing from reading the documentation, trying it out, and reading the source code.</p>
+</li>
+<li>
+<p>Decoupled transport. Run it over ssh, git, or http.</p>
+</li>
+<li>
+<p>Versioned change tracking. Preview changes by running the tool.</p>
+</li>
+<li>
+<p>Conducive to managing servers, mostly involving file management, scripts, and secrets. But there are more complicated things too that should have solutions &ndash; users, CA certificates, reloads vs restarts, etc.</p>
+</li>
+<li>
+<p>Not trying to invent something brand new or over-abstract. I&rsquo;d just like to write something like a set of shell scripts to manage my server.</p>
+</li>
+</ol>
+<p>Currently I have a working tool, more or less, enough to keep track of my config files and secrets without getting in the way too much. However it&rsquo;s in an experimental state and not close to ready for public consumption :)</p>
+<p>My process for building it was to make a tool that felt like an extension of the shell scripts that can often become much of a cluster&rsquo;s infrastructure, becoming a maintenance burden because of loss of understanding, complexity of implementation, and other reasons. But where shell scripts become over-complex as they grow and are iterated on, by adding an organization structure for additional data and parameters, maybe polyester can avoid some of that late-term complexity.</p>
+<p>With that out of the way, here&rsquo;s an example of how its looking so far. This is a plan file that manages a great IRC bouncer called <a href="https://soju.im">soju</a>:</p>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#007020">#!/bin/sh
+</span><span style="color:#007020"></span><span style="color:#007020">set</span> -eu
+
+<span style="color:#bb60d5">repodir</span><span style="color:#666">=</span>/home/appuser/repos/soju
+<span style="color:#bb60d5">appdir</span><span style="color:#666">=</span>/home/appuser/apps/soju
+
+P git-repo https://git.sr.ht/~emersion/soju <span style="color:#bb60d5">$repodir</span>
+
+P sh --dir <span style="color:#bb60d5">$repodir</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>    --on-change <span style="color:#bb60d5">$repodir</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>    --target /usr/local/bin/soju <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>    <span style="color:#4070a0">&#34;make &amp;&amp; make install&#34;</span>
+
+P mkdir -m <span style="color:#40a070">0700</span> <span style="color:#bb60d5">$appdir</span>
+P pcopy soju.conf run.sh <span style="color:#bb60d5">$appdir</span>/
+P pcopy <span style="color:#4070a0">&#34;systemd/*&#34;</span> /etc/systemd/system/
+
+P sh --target <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$appdir</span><span style="color:#4070a0">/{soju.conf,run.sh}</span><span style="color:#4070a0">&#34;</span> <span style="color:#4070a0">&#34;</span><span style="color:#4070a0">chown -R appuser:appuser </span><span style="color:#bb60d5">$appdir</span><span style="color:#4070a0">&#34;</span>
+
+P sh <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>    --target <span style="color:#4070a0">&#34;/etc/letsencrypt/{live,archive}/soju.autonomist.club&#34;</span>
+
+setfacl -R -m u:appuser:rX /etc/letsencrypt/live
+setfacl -R -m u:appuser:rX /etc/letsencrypt/archive
+
+setfacl -R -m u:appuser:rX /etc/letsencrypt/live/soju.autonomist.club
+setfacl -R -m u:appuser:rX /etc/letsencrypt/archive/soju.autonomist.club
+
+P sh <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>    --on-change /usr/local/bin/soju <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>    --on-change <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$appdir</span><span style="color:#4070a0">/{soju.conf,run.sh}</span><span style="color:#4070a0">&#34;</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>    <span style="color:#4070a0">&#34;systemctl daemon-reload &amp;&amp; systemctl restart soju.service&#34;</span>
+</code></pre></div><p>What&rsquo;s happening here hopefully looks somewhat familiar (assuming you&rsquo;re somewhat experienced with shell scripting and linux server management):</p>
+<ol>
+<li>We declare a git repository targeting a repository directory. Polyester updates to HEAD when it runs.</li>
+<li>If the repository had changes, rebuild and install soju.</li>
+<li>Copy configuration and system files, do stuff with files.</li>
+<li>Restart soju if there were any changes.</li>
+</ol>
+<p>Files like this, bundled together with other data (config files, secrets) typically bundled in a git repository, makes a plan. Plans run together concurrently, taking dependencies into account. Plans are made up of operations that are run on the environment where <code>polyester apply</code> is run, such as &ldquo;copy files from the plan&rdquo;, &ldquo;render a template containing decrypted secrets to this file&rdquo;, &ldquo;run this shell when these files change, but only signal change if this specific file changes&rdquo;, etc. Shell functions can be used to parameterize a set of operations. All together, this provides a lot.</p>
+<h1 id="implementation">implementation</h1>
+<p>Behind the curtain, polyester &ldquo;compiles&rdquo; the operations by executing the script with some small transformations. Each operation, when executed in this declaration mode, prints its name and arguments into to a (YAML 😬) plan declaration file. This is the file that is used when applying changes. Then the plan declarations are read and plan execution begins. This involves conditional execution, depending on previous, current, and desired state. The solution for this leverages an interface that provides a few abstractions on top of [spf13/cobra] to read state, determine how changes are determined, and of course to execute the state change. Operations are executed in order, only if it or any previous operations detected or triggered a change. Finally, some state files are saved into the file system to be used by the next run.</p>
+<p>From here, I&rsquo;m planning to add explicit change triggering, so you can changes for different purposes, such as running <code>systemctl reload</code> instead of <code>systemctl restart</code>. I&rsquo;m also planning separate apply &ldquo;phases&rdquo;, to better sequence file changes from deploys &ndash; ie first make file changes for all plans, then run systemd reloads/restarts one at a time. In general it would be nice to be able to preview, check, and execute a change on some hosts using polyester over ssh, though it&rsquo;s easy enough to run <code>ssh myhost &quot;cd cluster &amp;&amp; git pull &amp;&amp; polyester check &amp;&amp; polyester apply&quot;</code> for now.</p>
+<p>The current architecture should be suitable for supporting many languages beyond POSIX shell and bash, which could be fun. The current implementation should also be suitable for building various static analysis to let the tool help ensure consistent, secure environments.</p>
+<p>You might notice some magic in the plan above. Sometimes the <code>P sh</code> is called with a shell script in argument form, other times there are no arguments, followed by lines of shell. Using the great <a href="https://github.com/mvdan/sh">mvdan/sh</a> package, I was able to parse the shell script, and do an intermediate transformation to wrap the shell lines in an <code>EOF</code> string. This is nice where it&rsquo;s working, which is sadly not everywhere, such as in function bodies, because my editor highlights it like a normal shell script. Hopefully there are only small issues in the way of this working everywhere!</p>
+<h1 id="thats-all">that&rsquo;s all</h1>
+<p>It&rsquo;s been fun working on polyester, but also like most projects, its now looking more difficult than I expected it would be when I started. As the ideal solutions become clear, and how the state management, operations, and dsl can work together harmoniously, the real work involved in achieving the goals I set out to accomplish became apparent.</p>
+<p>If you think this is interesting, maybe you should <a href="mailto:contact@jeffrom.co">email</a> me!</p>
+
+    <p><i>Friday, September 24 2021</i></p>
+        </div><footer>
+  <div class="footer-links">
+    <a href="/">home</a>
+        <a href="//localhost:1313/about/">about</a>
+    <a href="/.well-known/openpgpkey/hu/xrpugdx8x3p7fauny9cnr1181okhpnjb" title="PGP key A0D09A68487704EBFE4477AE70A3E0BA67DF36C1" download="jeffrom.pgp">pgp</a>
+    <a href="/index.xml">rss</a>
+  </div>
+</footer>
+
+          <script type="text/javascript" src="/main.38bf2.js"></script>
+    </body>
+</html>

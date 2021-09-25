@@ -1,1 +1,180 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Jeff Martin</title><link>/posts/</link><description>Recent content in Posts on Jeff Martin</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Mon, 17 Feb 2020 15:09:58 -0500</lastBuildDate><atom:link href="/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>OS Customization Is for You</title><link>/posts/os-customization-is-for-you/</link><pubDate>Mon, 17 Feb 2020 15:09:58 -0500</pubDate><guid>/posts/os-customization-is-for-you/</guid><description>I got a new, modern laptop recently. This time around, I moved back to linux from OSX. Containerized workloads in particular for me have been annoying me on OSX for a while. Linux is generally a better OS if you are spending a lot of your time writing and building code that mostly runs on servers. OSX is generally fine about this, but everywhere I&amp;rsquo;ve worked, there&amp;rsquo;s always one application that has a large enough codebase to cause filesystem slowness to become frustrating.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Jeff Martin</title><link>/posts/</link><description>Recent content in Posts on Jeff Martin</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 24 Sep 2021 00:00:00 +0000</lastBuildDate><atom:link href="/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Polyester, another configuration management tool</title><link>/posts/polyester/</link><pubDate>Fri, 24 Sep 2021 00:00:00 +0000</pubDate><guid>/posts/polyester/</guid><description>&lt;p>I&amp;rsquo;ve been getting back into what&amp;rsquo;s now called the small internet, and find myself yet again managing server configurations, deployments, and secrets. Starting out with a kubernetes cluster, which has great tooling for cluster management, I quickly found that I didn&amp;rsquo;t want to pay the compute cost of a running cluster. My ideal cluster is as cheap as possible and basically ephemeral, with a short process for bootstrapping machines that restores the previous backed up state and updates dns.&lt;/p>
+&lt;p>Kubernetes is nice because it scales down well, easily running all my little workloads on a single machine. However systemd scales down just fine too, while avoiding the heavy runtime cost and OCI requirements of kube, as well as providing a set of security controls that I&amp;rsquo;m interested in learning more about (and some nice bells and whistles like &lt;a href="https://www.freedesktop.org/software/systemd/man/systemd-socket-proxyd.html">systemd-socket-proxy&lt;/a> as well).&lt;/p>
+&lt;p>Ansible is a fine choice for managing clusters like this, but I prefer a DSL written in a language I already tend to use frequently when I&amp;rsquo;m managing servers. So, after a bit of looking, I decided to write my own tool, because I&amp;rsquo;m like that.&lt;/p>
+&lt;h1 id="polyester">polyester&lt;/h1>
+&lt;p>It&amp;rsquo;s called &lt;a href="https://github.com/jeffrom/polyester">polyester&lt;/a>, and I think its neat. Here are some of its goals:&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>A simple implementation. It should be easy enough to understand what it&amp;rsquo;s doing from reading the documentation, trying it out, and reading the source code.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Decoupled transport. Run it over ssh, git, or http.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Versioned change tracking. Preview changes by running the tool.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Conducive to managing servers, mostly involving file management, scripts, and secrets. But there are more complicated things too that should have solutions &amp;ndash; users, CA certificates, reloads vs restarts, etc.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Not trying to invent something brand new or over-abstract. I&amp;rsquo;d just like to write something like a set of shell scripts to manage my server.&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;p>Currently I have a working tool, more or less, enough to keep track of my config files and secrets without getting in the way too much. However it&amp;rsquo;s in an experimental state and not close to ready for public consumption :)&lt;/p>
+&lt;p>My process for building it was to make a tool that felt like an extension of the shell scripts that can often become much of a cluster&amp;rsquo;s infrastructure, becoming a maintenance burden because of loss of understanding, complexity of implementation, and other reasons. But where shell scripts become over-complex as they grow and are iterated on, by adding an organization structure for additional data and parameters, maybe polyester can avoid some of that late-term complexity.&lt;/p>
+&lt;p>With that out of the way, here&amp;rsquo;s an example of how its looking so far. This is a plan file that manages a great IRC bouncer called &lt;a href="https://soju.im">soju&lt;/a>:&lt;/p>
+&lt;div class="highlight">&lt;pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&lt;code class="language-sh" data-lang="sh">&lt;span style="color:#007020">#!/bin/sh
+&lt;/span>&lt;span style="color:#007020">&lt;/span>&lt;span style="color:#007020">set&lt;/span> -eu
+&lt;span style="color:#bb60d5">repodir&lt;/span>&lt;span style="color:#666">=&lt;/span>/home/appuser/repos/soju
+&lt;span style="color:#bb60d5">appdir&lt;/span>&lt;span style="color:#666">=&lt;/span>/home/appuser/apps/soju
+P git-repo https://git.sr.ht/~emersion/soju &lt;span style="color:#bb60d5">$repodir&lt;/span>
+P sh --dir &lt;span style="color:#bb60d5">$repodir&lt;/span> &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> --on-change &lt;span style="color:#bb60d5">$repodir&lt;/span> &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> --target /usr/local/bin/soju &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> &lt;span style="color:#4070a0">&amp;#34;make &amp;amp;&amp;amp; make install&amp;#34;&lt;/span>
+P mkdir -m &lt;span style="color:#40a070">0700&lt;/span> &lt;span style="color:#bb60d5">$appdir&lt;/span>
+P pcopy soju.conf run.sh &lt;span style="color:#bb60d5">$appdir&lt;/span>/
+P pcopy &lt;span style="color:#4070a0">&amp;#34;systemd/*&amp;#34;&lt;/span> /etc/systemd/system/
+P sh --target &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#bb60d5">$appdir&lt;/span>&lt;span style="color:#4070a0">/{soju.conf,run.sh}&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#4070a0">chown -R appuser:appuser &lt;/span>&lt;span style="color:#bb60d5">$appdir&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span>
+P sh &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> --target &lt;span style="color:#4070a0">&amp;#34;/etc/letsencrypt/{live,archive}/soju.autonomist.club&amp;#34;&lt;/span>
+setfacl -R -m u:appuser:rX /etc/letsencrypt/live
+setfacl -R -m u:appuser:rX /etc/letsencrypt/archive
+setfacl -R -m u:appuser:rX /etc/letsencrypt/live/soju.autonomist.club
+setfacl -R -m u:appuser:rX /etc/letsencrypt/archive/soju.autonomist.club
+P sh &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> --on-change /usr/local/bin/soju &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> --on-change &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#bb60d5">$appdir&lt;/span>&lt;span style="color:#4070a0">/{soju.conf,run.sh}&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span> &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> &lt;span style="color:#4070a0">&amp;#34;systemctl daemon-reload &amp;amp;&amp;amp; systemctl restart soju.service&amp;#34;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>&lt;p>What&amp;rsquo;s happening here hopefully looks somewhat familiar (assuming you&amp;rsquo;re somewhat experienced with shell scripting and linux server management):&lt;/p>
+&lt;ol>
+&lt;li>We declare a git repository targeting a repository directory. Polyester updates to HEAD when it runs.&lt;/li>
+&lt;li>If the repository had changes, rebuild and install soju.&lt;/li>
+&lt;li>Copy configuration and system files, do stuff with files.&lt;/li>
+&lt;li>Restart soju if there were any changes.&lt;/li>
+&lt;/ol>
+&lt;p>Files like this, bundled together with other data (config files, secrets) typically bundled in a git repository, makes a plan. Plans run together concurrently, taking dependencies into account. Plans are made up of operations that are run on the environment where &lt;code>polyester apply&lt;/code> is run, such as &amp;ldquo;copy files from the plan&amp;rdquo;, &amp;ldquo;render a template containing decrypted secrets to this file&amp;rdquo;, &amp;ldquo;run this shell when these files change, but only signal change if this specific file changes&amp;rdquo;, etc. Shell functions can be used to parameterize a set of operations. All together, this provides a lot.&lt;/p>
+&lt;h1 id="implementation">implementation&lt;/h1>
+&lt;p>Behind the curtain, polyester &amp;ldquo;compiles&amp;rdquo; the operations by executing the script with some small transformations. Each operation, when executed in this declaration mode, prints its name and arguments into to a (YAML 😬) plan declaration file. This is the file that is used when applying changes. Then the plan declarations are read and plan execution begins. This involves conditional execution, depending on previous, current, and desired state. The solution for this leverages an interface that provides a few abstractions on top of [spf13/cobra] to read state, determine how changes are determined, and of course to execute the state change. Operations are executed in order, only if it or any previous operations detected or triggered a change. Finally, some state files are saved into the file system to be used by the next run.&lt;/p>
+&lt;p>From here, I&amp;rsquo;m planning to add explicit change triggering, so you can changes for different purposes, such as running &lt;code>systemctl reload&lt;/code> instead of &lt;code>systemctl restart&lt;/code>. I&amp;rsquo;m also planning separate apply &amp;ldquo;phases&amp;rdquo;, to better sequence file changes from deploys &amp;ndash; ie first make file changes for all plans, then run systemd reloads/restarts one at a time. In general it would be nice to be able to preview, check, and execute a change on some hosts using polyester over ssh, though it&amp;rsquo;s easy enough to run &lt;code>ssh myhost &amp;quot;cd cluster &amp;amp;&amp;amp; git pull &amp;amp;&amp;amp; polyester check &amp;amp;&amp;amp; polyester apply&amp;quot;&lt;/code> for now.&lt;/p>
+&lt;p>The current architecture should be suitable for supporting many languages beyond POSIX shell and bash, which could be fun. The current implementation should also be suitable for building various static analysis to let the tool help ensure consistent, secure environments.&lt;/p>
+&lt;p>You might notice some magic in the plan above. Sometimes the &lt;code>P sh&lt;/code> is called with a shell script in argument form, other times there are no arguments, followed by lines of shell. Using the great &lt;a href="https://github.com/mvdan/sh">mvdan/sh&lt;/a> package, I was able to parse the shell script, and do an intermediate transformation to wrap the shell lines in an &lt;code>EOF&lt;/code> string. This is nice where it&amp;rsquo;s working, which is sadly not everywhere, such as in function bodies, because my editor highlights it like a normal shell script. Hopefully there are only small issues in the way of this working everywhere!&lt;/p>
+&lt;h1 id="thats-all">that&amp;rsquo;s all&lt;/h1>
+&lt;p>It&amp;rsquo;s been fun working on polyester, but also like most projects, its now looking more difficult than I expected it would be when I started. As the ideal solutions become clear, and how the state management, operations, and dsl can work together harmoniously, the real work involved in achieving the goals I set out to accomplish became apparent.&lt;/p>
+&lt;p>If you think this is interesting, maybe you should &lt;a href="mailto:contact@jeffrom.co">email&lt;/a> me!&lt;/p></description></item><item><title>OS Customization Is for You</title><link>/posts/os-customization-is-for-you/</link><pubDate>Mon, 17 Feb 2020 15:09:58 -0500</pubDate><guid>/posts/os-customization-is-for-you/</guid><description>&lt;p>I got a new, modern laptop recently. This time around, I moved back to linux from OSX.
+Containerized workloads in particular for me have been annoying me on OSX for a while.
+Linux is generally a better OS if you are spending a lot of your time writing and building
+code that mostly runs on servers. OSX is generally fine about this, but everywhere I&amp;rsquo;ve
+worked, there&amp;rsquo;s always one application that has a large enough codebase to cause
+&lt;a href="https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/2">filesystem slowness&lt;/a> to become frustrating. Most of my time on computers is
+spent between a terminal and a browser, so I don&amp;rsquo;t have particularly complex workflows.
+Warning: This post likely wont be very interesting to you, unless you are interested in
+computers and customizing your laptop, or maybe you dislike customization and want to
+explore why by following along.&lt;/p>
+&lt;p>It&amp;rsquo;s definitely true that compared to OSX, setting up linux takes a lot of time. It takes
+2 hours to set up a macbook because the defaults are mostly the best. There are annoying
+differences between darwin and linux, but it&amp;rsquo;s easy enough to work around them, and
+because the overall experience is good, it&amp;rsquo;s just fundamentally out of your way to extent
+you stop noticing over time. That&amp;rsquo;s a huge benefit to OSX, and linux just doesn&amp;rsquo;t have
+that property. Buying a computer with linux preinstalled may help somewhat, but overall,
+you&amp;rsquo;ll likely need to expend some energy to find a suitable configuration.&lt;/p>
+&lt;p>If you use linux, you may as well just commit to do some tweaking. That can be as little
+as bootstrapping configuration files and installing some preferred applications, through
+to installing a modified kernel. In a few days you can create a more or less
+bootstrap-capable, more or less optimal workflow for yourself, and while there is wisdom
+in keeping tweaks minimal so muscle memory translates to different machines, your laptop
+is still the primary means through which many of us are using computers.&lt;/p>
+&lt;p>So I decided to spend a few days doing tweaks, mostly porting the few common workflows I
+have over from OSX, or replacing them with a reasonable alternative. I ended up spending
+the most time playing with &lt;a href="https://www.nerdfonts.com/">nerd fonts&lt;/a> and &lt;a href="https://github.com/tmux/tmux">tmux&lt;/a>. I made my terminal
+bar look something like my menu bar. Here is the menu bar:&lt;/p>
+&lt;p>&lt;img src="img/menubar.png" alt="My menu bar">&lt;/p>
+&lt;p>Here is the terminal bar:&lt;/p>
+&lt;p>&lt;img src="img/tmuxbar.png" alt="My tmux status">&lt;/p>
+&lt;p>They have some similarities, at least in how its components are placed. The terminal
+status has a lot more going on than the desktop. It&amp;rsquo;s easier for me to get to a menu bar I
+like in the terminal, since it&amp;rsquo;s just a line of characters, plus I spend a lot more time
+there, so that is better for me. Nerd fonts are nice here, since real estate is at a
+premium, and the icons are unobtrusive (read: not distracting). In particular, it&amp;rsquo;s easy
+to see, at a glance, what&amp;rsquo;s happening in a tab. If a program is running, there&amp;rsquo;s a little
+Tux to the left of it. If it&amp;rsquo;s running as root, there&amp;rsquo;s a cube. If I&amp;rsquo;m in a directory with
+a git repository, there&amp;rsquo;s an icon for that too. The clock and battery indicator are very
+useful for me, since I usually work in a fullscreen terminal, and can lose track of the
+time. It&amp;rsquo;s easy to go from here to integrating a pomodoro timer, or any other tool. Last,
+the CPU and memory indicators are cute, and I&amp;rsquo;ve found they come in handy from time to
+time.&lt;/p>
+&lt;p>To do this customization, I used a combination of plugins, other peoples hacks, and my
+own hacks:&lt;/p>
+&lt;ul>
+&lt;li>a patched font&lt;/li>
+&lt;li>a fallback font for nerd fonts, supported by the terminal (kitty)&lt;/li>
+&lt;li>tmux plugins&lt;/li>
+&lt;li>shell configuration&lt;/li>
+&lt;li>forking a tmux theme (gruvbox!)&lt;/li>
+&lt;li>writing a &lt;a href="https://github.com/jeffrom/tinygraph">small graphing tool&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;p>That&amp;rsquo;s a lot that needs to work together. I get that&amp;rsquo;s not for everyone! There are easier
+ways to get this all working than what I did. For example, there are plenty of fonts that
+don&amp;rsquo;t need to be patched in order to work nicely with kitty. Kitty by itself could
+probably handle a lot of what tmux does too. There are surely plenty of already existing
+tools to print unicode graphs. All of these things can also be done using other terminals
+or window managers, in many cases likely with less configuration. All I can really say to
+that is, I leveraged the tools I like to use so I can use them according to muscle and
+visual memory. It&amp;rsquo;s pretty tailored to me specifically, meaning it works according to my
+principles for computer work and play.&lt;/p>
+&lt;p>If, for some reason, you don&amp;rsquo;t write code, and you&amp;rsquo;re still reading, here is where your
+eyes will really glaze over. I&amp;rsquo;m going to show some code I used to get some of the more
+custom behavior out of this setup. In order to accomplish the title updates for directory
+change or program execution, here&amp;rsquo;s what I did in &lt;code>~/.bashrc&lt;/code>. First, to handle updating
+the title when commands are executed:&lt;/p>
+&lt;div class="highlight">&lt;pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&lt;code class="language-bash" data-lang="bash">&lt;span style="color:#60a0b0;font-style:italic"># runs before command runs&lt;/span>
+tmux_prompt_hook&lt;span style="color:#666">(&lt;/span>&lt;span style="color:#666">)&lt;/span> &lt;span style="color:#666">{&lt;/span>
+&lt;span style="color:#007020;font-weight:bold">if&lt;/span> &lt;span style="color:#666">[&lt;/span>&lt;span style="color:#666">[&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#bb60d5">$BASH_COMMAND&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span> !&lt;span style="color:#666">=&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#bb60d5">$PROMPT_COMMAND&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span> &lt;span style="color:#666">]&lt;/span>&lt;span style="color:#666">]&lt;/span>; &lt;span style="color:#007020;font-weight:bold">then&lt;/span>
+&lt;span style="color:#bb60d5">prefix&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&amp;lt;nerdfont tux icon&amp;gt; &amp;#34;&lt;/span>
+&lt;span style="color:#bb60d5">out&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#007020;font-weight:bold">$(&lt;/span>&lt;span style="color:#007020">echo&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#bb60d5">$BASH_COMMAND&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span> | awk &lt;span style="color:#4070a0">&amp;#39;{print $1;}&amp;#39;&lt;/span>&lt;span style="color:#007020;font-weight:bold">)&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span>
+&lt;span style="color:#007020;font-weight:bold">case&lt;/span> &lt;span style="color:#bb60d5">$out&lt;/span> in
+vi|vim&lt;span style="color:#666">)&lt;/span>
+&lt;span style="color:#bb60d5">prefix&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&amp;#34;&lt;/span>
+&lt;span style="color:#bb60d5">out&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&amp;lt;nerdfont vim icon&amp;gt;&amp;#34;&lt;/span>
+;;
+sudo&lt;span style="color:#666">)&lt;/span>
+&lt;span style="color:#bb60d5">prefix&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&amp;lt;nerdfont cube icon&amp;gt; &amp;#34;&lt;/span>
+&lt;span style="color:#bb60d5">out&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#007020;font-weight:bold">$(&lt;/span>&lt;span style="color:#007020">echo&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#bb60d5">$BASH_COMMAND&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span> | awk &lt;span style="color:#4070a0">&amp;#39;{print $2;}&amp;#39;&lt;/span>&lt;span style="color:#007020;font-weight:bold">)&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span>
+;;
+hub&lt;span style="color:#666">)&lt;/span>
+&lt;span style="color:#bb60d5">out&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#4070a0">&amp;#34;git&amp;#34;&lt;/span>
+;;
+&lt;span style="color:#007020;font-weight:bold">esac&lt;/span>
+&lt;span style="color:#60a0b0;font-style:italic"># send ANSI code that tmux uses to update the title&lt;/span>
+&lt;span style="color:#007020">echo&lt;/span> -ne &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#4070a0">\033k&lt;/span>&lt;span style="color:#70a0d0;font-style:italic">${&lt;/span>&lt;span style="color:#bb60d5">prefix&lt;/span>&lt;span style="color:#70a0d0;font-style:italic">}&lt;/span>&lt;span style="color:#70a0d0;font-style:italic">${&lt;/span>&lt;span style="color:#bb60d5">out&lt;/span>&lt;span style="color:#70a0d0;font-style:italic">}&lt;/span>&lt;span style="color:#4070a0">\033\\&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span>
+&lt;span style="color:#007020;font-weight:bold">fi&lt;/span>
+&lt;span style="color:#666">}&lt;/span>
+&lt;span style="color:#60a0b0;font-style:italic"># update window titles in tmux&lt;/span>
+&lt;span style="color:#007020;font-weight:bold">if&lt;/span> &lt;span style="color:#666">[&lt;/span>&lt;span style="color:#666">[&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#bb60d5">$TMUX&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span> !&lt;span style="color:#666">=&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&amp;#34;&lt;/span> &lt;span style="color:#666">]&lt;/span>&lt;span style="color:#666">]&lt;/span>; &lt;span style="color:#007020;font-weight:bold">then&lt;/span>
+&lt;span style="color:#60a0b0;font-style:italic"># PROMPT_COMMAND triggers before printing the prompt&lt;/span>
+&lt;span style="color:#007020">export&lt;/span> &lt;span style="color:#bb60d5">PROMPT_COMMAND&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#4070a0">&amp;#39;$HOME/bin/tmux-prompt-command.sh&amp;#39;&lt;/span>
+&lt;span style="color:#60a0b0;font-style:italic"># DEBUG trap triggers before the command&amp;#39;s process is started&lt;/span>
+&lt;span style="color:#007020">trap&lt;/span> tmux_prompt_hook DEBUG
+&lt;span style="color:#007020;font-weight:bold">fi&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>&lt;p>Here&amp;rsquo;s a useful function to point the trap at if you want to better understand how this
+works:&lt;/p>
+&lt;div class="highlight">&lt;pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&lt;code class="language-bash" data-lang="bash">dump_stuff&lt;span style="color:#666">(&lt;/span>&lt;span style="color:#666">)&lt;/span> &lt;span style="color:#666">{&lt;/span>
+&lt;span style="color:#007020">echo&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#4070a0">comp_line: &lt;/span>&lt;span style="color:#bb60d5">$COMP_LINE&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span>
+&lt;span style="color:#007020">echo&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#4070a0">BASH_COMMAND: &lt;/span>&lt;span style="color:#bb60d5">$BASH_COMMAND&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span>
+&lt;span style="color:#007020">echo&lt;/span> &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#4070a0">PROMPT_COMMAND: &lt;/span>&lt;span style="color:#bb60d5">$PROMPT_COMMAND&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span>
+&lt;span style="color:#666">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>&lt;p>I wrote &lt;a href="https://github.com/jeffrom/tinygraph">tinygraph&lt;/a> to render the CPU and memory graphs. Tired of having to
+hunt around whenever I need a solution for this, I wanted a tool I could use to make
+arbitrary graphs with threshold coloring with easily customizable characters. Here&amp;rsquo;s the
+sort of thing you can do with it:&lt;/p>
+&lt;div class="highlight">&lt;pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&lt;code class="language-bash" data-lang="bash">&lt;span style="color:#bb60d5">cpu&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#007020;font-weight:bold">$((&lt;/span>&lt;span style="color:#40a070">100&lt;/span>&lt;span style="color:#666">-&lt;/span>&lt;span style="color:#007020;font-weight:bold">$(&lt;/span>vmstat &lt;span style="color:#40a070">1&lt;/span> 2|tail -1|awk &lt;span style="color:#4070a0">&amp;#39;{print $15}&amp;#39;&lt;/span>&lt;span style="color:#007020;font-weight:bold">)&lt;/span>&lt;span style="color:#007020;font-weight:bold">))&lt;/span>
+&lt;span style="color:#bb60d5">TMUX_STATUS&lt;/span>&lt;span style="color:#666">=&lt;/span>&lt;span style="color:#40a070">1&lt;/span> tinygraph -n &lt;span style="color:#4070a0">&amp;#34;&lt;/span>&lt;span style="color:#bb60d5">$cpu&lt;/span>&lt;span style="color:#4070a0">&amp;#34;&lt;/span> -t &lt;span style="color:#40a070">100&lt;/span> &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> --prefix &lt;span style="color:#4070a0">&amp;#34;&amp;lt;nerdfont cpu icon&amp;gt;&amp;#34;&lt;/span> &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> --graph equal &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> --threshold &lt;span style="color:#4070a0">&amp;#39;60:fg=yellow,bold&amp;#39;&lt;/span> &lt;span style="color:#4070a0;font-weight:bold">\
+&lt;/span>&lt;span style="color:#4070a0;font-weight:bold">&lt;/span> --threshold &lt;span style="color:#4070a0">&amp;#39;83:fg=red,bold&amp;#39;&lt;/span>
+&lt;span style="color:#60a0b0;font-style:italic"># see what&amp;#39;s built in and play with thresholds by running: tinygraph --workout&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>&lt;p>Customization is a large topic, and this post describes a tiny part of it. There is a lot
+computer folks can do in this space to automate away toil and provide useful experiences
+for ourselves and others. What that means is strongly contested, but nonetheless there is
+potential to make a significant impact on our relationship the the machines we use.&lt;/p></description></item></channel></rss>

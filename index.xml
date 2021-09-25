@@ -1,4 +1,565 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Jeff Martin</title><link>/</link><description>Recent content on Jeff Martin</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Mon, 17 Feb 2020 15:09:58 -0500</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml"/><item><title>OS Customization Is for You</title><link>/posts/os-customization-is-for-you/</link><pubDate>Mon, 17 Feb 2020 15:09:58 -0500</pubDate><guid>/posts/os-customization-is-for-you/</guid><description>I got a new, modern laptop recently. This time around, I moved back to linux from OSX. Containerized workloads in particular for me have been annoying me on OSX for a while. Linux is generally a better OS if you are spending a lot of your time writing and building code that mostly runs on servers. OSX is generally fine about this, but everywhere I&amp;rsquo;ve worked, there&amp;rsquo;s always one application that has a large enough codebase to cause filesystem slowness to become frustrating.</description></item><item><title>about</title><link>/about/</link><pubDate>Fri, 07 Feb 2020 00:00:00 +0000</pubDate><guid>/about/</guid><description>about me computers, the internet, music, history, learning more.
-I&amp;rsquo;m the author of logd, a log server with emphasis on simplicity and speed.
-I did a talk at The Big Elixir in 2018 on testing a large api server.
-I have some other projects on github.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jeff Martin</title>
+    <link>//localhost:1313/</link>
+    <description>Recent content on Jeff Martin</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 24 Sep 2021 00:00:00 +0000</lastBuildDate><atom:link href="//localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Polyester, another configuration management tool</title>
+      <link>//localhost:1313/posts/polyester/</link>
+      <pubDate>Fri, 24 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/posts/polyester/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;ve been getting back into what&amp;rsquo;s now called the small internet, and find myself yet again managing server configurations, deployments, and secrets. Starting out with a kubernetes cluster, which has great tooling for cluster management, I quickly found that I didn&amp;rsquo;t want to pay the compute cost of a running cluster. My ideal cluster is as cheap as possible and basically ephemeral, with a short process for bootstrapping machines that restores the previous backed up state and updates dns.&lt;/p&gt;
+&lt;p&gt;Kubernetes is nice because it scales down well, easily running all my little workloads on a single machine. However systemd scales down just fine too, while avoiding the heavy runtime cost and OCI requirements of kube, as well as providing a set of security controls that I&amp;rsquo;m interested in learning more about (and some nice bells and whistles like &lt;a href=&#34;https://www.freedesktop.org/software/systemd/man/systemd-socket-proxyd.html&#34;&gt;systemd-socket-proxy&lt;/a&gt; as well).&lt;/p&gt;
+&lt;p&gt;Ansible is a fine choice for managing clusters like this, but I prefer a DSL written in a language I already tend to use frequently when I&amp;rsquo;m managing servers. So, after a bit of looking, I decided to write my own tool, because I&amp;rsquo;m like that.&lt;/p&gt;
+&lt;h1 id=&#34;polyester&#34;&gt;polyester&lt;/h1&gt;
+&lt;p&gt;It&amp;rsquo;s called &lt;a href=&#34;https://github.com/jeffrom/polyester&#34;&gt;polyester&lt;/a&gt;, and I think its neat. Here are some of its goals:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;A simple implementation. It should be easy enough to understand what it&amp;rsquo;s doing from reading the documentation, trying it out, and reading the source code.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Decoupled transport. Run it over ssh, git, or http.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Versioned change tracking. Preview changes by running the tool.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Conducive to managing servers, mostly involving file management, scripts, and secrets. But there are more complicated things too that should have solutions &amp;ndash; users, CA certificates, reloads vs restarts, etc.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Not trying to invent something brand new or over-abstract. I&amp;rsquo;d just like to write something like a set of shell scripts to manage my server.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Currently I have a working tool, more or less, enough to keep track of my config files and secrets without getting in the way too much. However it&amp;rsquo;s in an experimental state and not close to ready for public consumption :)&lt;/p&gt;
+&lt;p&gt;My process for building it was to make a tool that felt like an extension of the shell scripts that can often become much of a cluster&amp;rsquo;s infrastructure, becoming a maintenance burden because of loss of understanding, complexity of implementation, and other reasons. But where shell scripts become over-complex as they grow and are iterated on, by adding an organization structure for additional data and parameters, maybe polyester can avoid some of that late-term complexity.&lt;/p&gt;
+&lt;p&gt;With that out of the way, here&amp;rsquo;s an example of how its looking so far. This is a plan file that manages a great IRC bouncer called &lt;a href=&#34;https://soju.im&#34;&gt;soju&lt;/a&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;color:#007020&#34;&gt;#!/bin/sh
+&lt;/span&gt;&lt;span style=&#34;color:#007020&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#007020&#34;&gt;set&lt;/span&gt; -eu
+
+&lt;span style=&#34;color:#bb60d5&#34;&gt;repodir&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;/home/appuser/repos/soju
+&lt;span style=&#34;color:#bb60d5&#34;&gt;appdir&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;/home/appuser/apps/soju
+
+P git-repo https://git.sr.ht/~emersion/soju &lt;span style=&#34;color:#bb60d5&#34;&gt;$repodir&lt;/span&gt;
+
+P sh --dir &lt;span style=&#34;color:#bb60d5&#34;&gt;$repodir&lt;/span&gt; &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    --on-change &lt;span style=&#34;color:#bb60d5&#34;&gt;$repodir&lt;/span&gt; &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    --target /usr/local/bin/soju &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;make &amp;amp;&amp;amp; make install&amp;#34;&lt;/span&gt;
+
+P mkdir -m &lt;span style=&#34;color:#40a070&#34;&gt;0700&lt;/span&gt; &lt;span style=&#34;color:#bb60d5&#34;&gt;$appdir&lt;/span&gt;
+P pcopy soju.conf run.sh &lt;span style=&#34;color:#bb60d5&#34;&gt;$appdir&lt;/span&gt;/
+P pcopy &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;systemd/*&amp;#34;&lt;/span&gt; /etc/systemd/system/
+
+P sh --target &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$appdir&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;/{soju.conf,run.sh}&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;chown -R appuser:appuser &lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$appdir&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;
+
+P sh &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    --target &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;/etc/letsencrypt/{live,archive}/soju.autonomist.club&amp;#34;&lt;/span&gt;
+
+setfacl -R -m u:appuser:rX /etc/letsencrypt/live
+setfacl -R -m u:appuser:rX /etc/letsencrypt/archive
+
+setfacl -R -m u:appuser:rX /etc/letsencrypt/live/soju.autonomist.club
+setfacl -R -m u:appuser:rX /etc/letsencrypt/archive/soju.autonomist.club
+
+P sh &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    --on-change /usr/local/bin/soju &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    --on-change &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$appdir&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;/{soju.conf,run.sh}&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;systemctl daemon-reload &amp;amp;&amp;amp; systemctl restart soju.service&amp;#34;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What&amp;rsquo;s happening here hopefully looks somewhat familiar (assuming you&amp;rsquo;re somewhat experienced with shell scripting and linux server management):&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;We declare a git repository targeting a repository directory. Polyester updates to HEAD when it runs.&lt;/li&gt;
+&lt;li&gt;If the repository had changes, rebuild and install soju.&lt;/li&gt;
+&lt;li&gt;Copy configuration and system files, do stuff with files.&lt;/li&gt;
+&lt;li&gt;Restart soju if there were any changes.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Files like this, bundled together with other data (config files, secrets) typically bundled in a git repository, makes a plan. Plans run together concurrently, taking dependencies into account. Plans are made up of operations that are run on the environment where &lt;code&gt;polyester apply&lt;/code&gt; is run, such as &amp;ldquo;copy files from the plan&amp;rdquo;, &amp;ldquo;render a template containing decrypted secrets to this file&amp;rdquo;, &amp;ldquo;run this shell when these files change, but only signal change if this specific file changes&amp;rdquo;, etc. Shell functions can be used to parameterize a set of operations. All together, this provides a lot.&lt;/p&gt;
+&lt;h1 id=&#34;implementation&#34;&gt;implementation&lt;/h1&gt;
+&lt;p&gt;Behind the curtain, polyester &amp;ldquo;compiles&amp;rdquo; the operations by executing the script with some small transformations. Each operation, when executed in this declaration mode, prints its name and arguments into to a (YAML 😬) plan declaration file. This is the file that is used when applying changes. Then the plan declarations are read and plan execution begins. This involves conditional execution, depending on previous, current, and desired state. The solution for this leverages an interface that provides a few abstractions on top of [spf13/cobra] to read state, determine how changes are determined, and of course to execute the state change. Operations are executed in order, only if it or any previous operations detected or triggered a change. Finally, some state files are saved into the file system to be used by the next run.&lt;/p&gt;
+&lt;p&gt;From here, I&amp;rsquo;m planning to add explicit change triggering, so you can changes for different purposes, such as running &lt;code&gt;systemctl reload&lt;/code&gt; instead of &lt;code&gt;systemctl restart&lt;/code&gt;. I&amp;rsquo;m also planning separate apply &amp;ldquo;phases&amp;rdquo;, to better sequence file changes from deploys &amp;ndash; ie first make file changes for all plans, then run systemd reloads/restarts one at a time. In general it would be nice to be able to preview, check, and execute a change on some hosts using polyester over ssh, though it&amp;rsquo;s easy enough to run &lt;code&gt;ssh myhost &amp;quot;cd cluster &amp;amp;&amp;amp; git pull &amp;amp;&amp;amp; polyester check &amp;amp;&amp;amp; polyester apply&amp;quot;&lt;/code&gt; for now.&lt;/p&gt;
+&lt;p&gt;The current architecture should be suitable for supporting many languages beyond POSIX shell and bash, which could be fun. The current implementation should also be suitable for building various static analysis to let the tool help ensure consistent, secure environments.&lt;/p&gt;
+&lt;p&gt;You might notice some magic in the plan above. Sometimes the &lt;code&gt;P sh&lt;/code&gt; is called with a shell script in argument form, other times there are no arguments, followed by lines of shell. Using the great &lt;a href=&#34;https://github.com/mvdan/sh&#34;&gt;mvdan/sh&lt;/a&gt; package, I was able to parse the shell script, and do an intermediate transformation to wrap the shell lines in an &lt;code&gt;EOF&lt;/code&gt; string. This is nice where it&amp;rsquo;s working, which is sadly not everywhere, such as in function bodies, because my editor highlights it like a normal shell script. Hopefully there are only small issues in the way of this working everywhere!&lt;/p&gt;
+&lt;h1 id=&#34;thats-all&#34;&gt;that&amp;rsquo;s all&lt;/h1&gt;
+&lt;p&gt;It&amp;rsquo;s been fun working on polyester, but also like most projects, its now looking more difficult than I expected it would be when I started. As the ideal solutions become clear, and how the state management, operations, and dsl can work together harmoniously, the real work involved in achieving the goals I set out to accomplish became apparent.&lt;/p&gt;
+&lt;p&gt;If you think this is interesting, maybe you should &lt;a href=&#34;mailto:contact@jeffrom.co&#34;&gt;email&lt;/a&gt; me!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Wrangling 15 Years of Email</title>
+      <link>//localhost:1313/posts/email-wrangling/</link>
+      <pubDate>Wed, 24 Jun 2020 10:39:22 -0500</pubDate>
+      
+      <guid>//localhost:1313/posts/email-wrangling/</guid>
+      <description>&lt;ul&gt;
+&lt;li&gt;export promotions label mbox from google&lt;/li&gt;
+&lt;li&gt;train spam&lt;/li&gt;
+&lt;li&gt;train ham&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#60a0b0;font-style:italic&#34;&gt;# train spam&lt;/span&gt;
+bogofilter --unicode&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#007020&#34;&gt;false&lt;/span&gt; -svM &amp;lt; spam.mbox
+notmuch search --output files --format text0 -- tag:spam | xargs -0 bogofilter --unicode&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#007020&#34;&gt;false&lt;/span&gt; -svB
+
+&lt;span style=&#34;color:#60a0b0;font-style:italic&#34;&gt;# train ham&lt;/span&gt;
+notmuch search --output files --format text0 -- tag:friend or tag:family or tag:list or tag:ham and not tag:spam | xargs -0 bogofilter --unicode&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#007020&#34;&gt;false&lt;/span&gt; -nvB
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;after the first run:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ notmuch search --output files --format text0 -- tag:inbox | xargs -0 bogofilter -BT | tee bogo.1.out
+$ cat bogo.1.out | awk &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#39;{print $(NF-1)}&amp;#39;&lt;/span&gt; | sort | uniq -c
+  &lt;span style=&#34;color:#40a070&#34;&gt;23729&lt;/span&gt; H
+  &lt;span style=&#34;color:#40a070&#34;&gt;17253&lt;/span&gt; S
+  &lt;span style=&#34;color:#40a070&#34;&gt;26983&lt;/span&gt; U
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;spam-check.py tag:inbox
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;had a lot of false positives. rewrote in go, better subprocess communication:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ cat bogo.2.out | awk &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#39;{print $1}&amp;#39;&lt;/span&gt; | sort | uniq -c
+  &lt;span style=&#34;color:#40a070&#34;&gt;21975&lt;/span&gt; HAM
+      &lt;span style=&#34;color:#40a070&#34;&gt;1&lt;/span&gt; &amp;lt;noreply@h4.hilton.com&amp;gt;
+   &lt;span style=&#34;color:#40a070&#34;&gt;8339&lt;/span&gt; SPAM
+  &lt;span style=&#34;color:#40a070&#34;&gt;18477&lt;/span&gt; UNSURE
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;ran in 6 minutes.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;jeff@x1cats:~ $ cat bogo.3.out | awk &#39;{print $1}&#39; | sort | uniq -c
+  25931 HAM
+      1 &amp;lt;noreply@h4.hilton.com&amp;gt;
+   4854 SPAM
+  17922 UNSURE
+jeff@x1cats:~ $ cat bogo.4.out | awk &#39;{print $1}&#39; | sort | uniq -c
+  26350 HAM
+      1 &amp;lt;noreply@h4.hilton.com&amp;gt;
+   4744 SPAM
+  16755 UNSURE
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;bindings in aerc so i can mark spam/ham and train bogofilter&lt;/li&gt;
+&lt;li&gt;train bogo in post proc: if it comes in as spam / ham, etc&lt;/li&gt;
+&lt;li&gt;post proc: apply bogo to unknown emails&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;basically the system supports:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;tag spam/ham in bulk using notmuch&lt;/li&gt;
+&lt;li&gt;zoom in and tag using aerc&lt;/li&gt;
+&lt;li&gt;train bogo using gmail&amp;rsquo;s spam detection as it comes in&lt;/li&gt;
+&lt;li&gt;train gmail using bogofilter by pushing the spam back out&lt;/li&gt;
+&lt;li&gt;audit bogofilter by having it set intermediate tags (bogo-spam, bogo-unsure, bogo-ham)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;inbox: out of ~13k messages, 5000 were spam&lt;/p&gt;
+&lt;h2 id=&#34;inspiration&#34;&gt;inspiration&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/tminor/tmail&#34;&gt;https://github.com/tminor/tmail&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://lwn.net/Articles/705856/&#34;&gt;https://lwn.net/Articles/705856/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://lwn.net/Articles/172491/&#34;&gt;https://lwn.net/Articles/172491/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://notmuchmail.org/pipermail/notmuch/2016/023111.html&#34;&gt;https://notmuchmail.org/pipermail/notmuch/2016/023111.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://webapps.stackexchange.com/questions/13878/does-moving-a-mail-to-the-imap-spam-folder-trains-gmails-spam-filter&#34;&gt;https://webapps.stackexchange.com/questions/13878/does-moving-a-mail-to-the-imap-spam-folder-trains-gmails-spam-filter&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://anarc.at/services/mail/&#34;&gt;https://anarc.at/services/mail/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Susannah Martin</title>
+      <link>//localhost:1313/posts/susannah-martin/</link>
+      <pubDate>Tue, 10 Mar 2020 15:01:31 -0700</pubDate>
+      
+      <guid>//localhost:1313/posts/susannah-martin/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>OS Customization Is for You</title>
+      <link>//localhost:1313/posts/os-customization-is-for-you/</link>
+      <pubDate>Mon, 17 Feb 2020 15:09:58 -0500</pubDate>
+      
+      <guid>//localhost:1313/posts/os-customization-is-for-you/</guid>
+      <description>&lt;p&gt;I got a new, modern laptop recently. This time around, I moved back to linux from OSX.
+Containerized workloads in particular for me have been annoying me on OSX for a while.
+Linux is generally a better OS if you are spending a lot of your time writing and building
+code that mostly runs on servers. OSX is generally fine about this, but everywhere I&amp;rsquo;ve
+worked, there&amp;rsquo;s always one application that has a large enough codebase to cause
+&lt;a href=&#34;https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/2&#34;&gt;filesystem slowness&lt;/a&gt; to become frustrating. Most of my time on computers is
+spent between a terminal and a browser, so I don&amp;rsquo;t have particularly complex workflows.
+Warning: This post likely wont be very interesting to you, unless you are interested in
+computers and customizing your laptop, or maybe you dislike customization and want to
+explore why by following along.&lt;/p&gt;
+&lt;p&gt;It&amp;rsquo;s definitely true that compared to OSX, setting up linux takes a lot of time. It takes
+2 hours to set up a macbook because the defaults are mostly the best. There are annoying
+differences between darwin and linux, but it&amp;rsquo;s easy enough to work around them, and
+because the overall experience is good, it&amp;rsquo;s just fundamentally out of your way to extent
+you stop noticing over time. That&amp;rsquo;s a huge benefit to OSX, and linux just doesn&amp;rsquo;t have
+that property. Buying a computer with linux preinstalled may help somewhat, but overall,
+you&amp;rsquo;ll likely need to expend some energy to find a suitable configuration.&lt;/p&gt;
+&lt;p&gt;If you use linux, you may as well just commit to do some tweaking. That can be as little
+as bootstrapping configuration files and installing some preferred applications, through
+to installing a modified kernel. In a few days you can create a more or less
+bootstrap-capable, more or less optimal workflow for yourself, and while there is wisdom
+in keeping tweaks minimal so muscle memory translates to different machines, your laptop
+is still the primary means through which many of us are using computers.&lt;/p&gt;
+&lt;p&gt;So I decided to spend a few days doing tweaks, mostly porting the few common workflows I
+have over from OSX, or replacing them with a reasonable alternative. I ended up spending
+the most time playing with &lt;a href=&#34;https://www.nerdfonts.com/&#34;&gt;nerd fonts&lt;/a&gt; and &lt;a href=&#34;https://github.com/tmux/tmux&#34;&gt;tmux&lt;/a&gt;. I made my terminal
+bar look something like my menu bar. Here is the menu bar:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;img/menubar.png&#34; alt=&#34;My menu bar&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Here is the terminal bar:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;img/tmuxbar.png&#34; alt=&#34;My tmux status&#34;&gt;&lt;/p&gt;
+&lt;p&gt;They have some similarities, at least in how its components are placed. The terminal
+status has a lot more going on than the desktop. It&amp;rsquo;s easier for me to get to a menu bar I
+like in the terminal, since it&amp;rsquo;s just a line of characters, plus I spend a lot more time
+there, so that is better for me. Nerd fonts are nice here, since real estate is at a
+premium, and the icons are unobtrusive (read: not distracting). In particular, it&amp;rsquo;s easy
+to see, at a glance, what&amp;rsquo;s happening in a tab. If a program is running, there&amp;rsquo;s a little
+Tux to the left of it. If it&amp;rsquo;s running as root, there&amp;rsquo;s a cube. If I&amp;rsquo;m in a directory with
+a git repository, there&amp;rsquo;s an icon for that too. The clock and battery indicator are very
+useful for me, since I usually work in a fullscreen terminal, and can lose track of the
+time. It&amp;rsquo;s easy to go from here to integrating a pomodoro timer, or any other tool.  Last,
+the CPU and memory indicators are cute, and I&amp;rsquo;ve found they come in handy from time to
+time.&lt;/p&gt;
+&lt;p&gt;To do this customization, I used a combination of plugins, other peoples hacks, and my
+own hacks:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a patched font&lt;/li&gt;
+&lt;li&gt;a fallback font for nerd fonts, supported by the terminal (kitty)&lt;/li&gt;
+&lt;li&gt;tmux plugins&lt;/li&gt;
+&lt;li&gt;shell configuration&lt;/li&gt;
+&lt;li&gt;forking a tmux theme (gruvbox!)&lt;/li&gt;
+&lt;li&gt;writing a &lt;a href=&#34;https://github.com/jeffrom/tinygraph&#34;&gt;small graphing tool&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That&amp;rsquo;s a lot that needs to work together. I get that&amp;rsquo;s not for everyone! There are easier
+ways to get this all working than what I did. For example, there are plenty of fonts that
+don&amp;rsquo;t need to be patched in order to work nicely with kitty. Kitty by itself could
+probably handle a lot of what tmux does too. There are surely plenty of already existing
+tools to print unicode graphs. All of these things can also be done using other terminals
+or window managers, in many cases likely with less configuration. All I can really say to
+that is, I leveraged the tools I like to use so I can use them according to muscle and
+visual memory. It&amp;rsquo;s pretty tailored to me specifically, meaning it works according to my
+principles for computer work and play.&lt;/p&gt;
+&lt;p&gt;If, for some reason, you don&amp;rsquo;t write code, and you&amp;rsquo;re still reading, here is where your
+eyes will really glaze over. I&amp;rsquo;m going to show some code I used to get some of the more
+custom behavior out of this setup. In order to accomplish the title updates for directory
+change or program execution, here&amp;rsquo;s what I did in &lt;code&gt;~/.bashrc&lt;/code&gt;. First, to handle updating
+the title when commands are executed:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#60a0b0;font-style:italic&#34;&gt;# runs before command runs&lt;/span&gt;
+tmux_prompt_hook&lt;span style=&#34;color:#666&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;{&lt;/span&gt;
+    &lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;[&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$BASH_COMMAND&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt; !&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$PROMPT_COMMAND&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;]&lt;/span&gt;; &lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;then&lt;/span&gt;
+        &lt;span style=&#34;color:#bb60d5&#34;&gt;prefix&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&amp;lt;nerdfont tux icon&amp;gt; &amp;#34;&lt;/span&gt;
+        &lt;span style=&#34;color:#bb60d5&#34;&gt;out&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color:#007020&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$BASH_COMMAND&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt; | awk &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#39;{print $1;}&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;
+        &lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#bb60d5&#34;&gt;$out&lt;/span&gt; in
+            vi|vim&lt;span style=&#34;color:#666&#34;&gt;)&lt;/span&gt;
+                &lt;span style=&#34;color:#bb60d5&#34;&gt;prefix&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;
+                &lt;span style=&#34;color:#bb60d5&#34;&gt;out&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&amp;lt;nerdfont vim icon&amp;gt;&amp;#34;&lt;/span&gt;
+                ;;
+            sudo&lt;span style=&#34;color:#666&#34;&gt;)&lt;/span&gt;
+                &lt;span style=&#34;color:#bb60d5&#34;&gt;prefix&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&amp;lt;nerdfont cube icon&amp;gt; &amp;#34;&lt;/span&gt;
+                &lt;span style=&#34;color:#bb60d5&#34;&gt;out&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color:#007020&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$BASH_COMMAND&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt; | awk &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#39;{print $2;}&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;
+                ;;
+            hub&lt;span style=&#34;color:#666&#34;&gt;)&lt;/span&gt;
+                &lt;span style=&#34;color:#bb60d5&#34;&gt;out&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;git&amp;#34;&lt;/span&gt;
+                ;;
+        &lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;esac&lt;/span&gt;
+
+        &lt;span style=&#34;color:#60a0b0;font-style:italic&#34;&gt;# send ANSI code that tmux uses to update the title&lt;/span&gt;
+        &lt;span style=&#34;color:#007020&#34;&gt;echo&lt;/span&gt; -ne &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;\033k&lt;/span&gt;&lt;span style=&#34;color:#70a0d0;font-style:italic&#34;&gt;${&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;prefix&lt;/span&gt;&lt;span style=&#34;color:#70a0d0;font-style:italic&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#70a0d0;font-style:italic&#34;&gt;${&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;out&lt;/span&gt;&lt;span style=&#34;color:#70a0d0;font-style:italic&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;\033\\&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;fi&lt;/span&gt;
+&lt;span style=&#34;color:#666&#34;&gt;}&lt;/span&gt;
+
+&lt;span style=&#34;color:#60a0b0;font-style:italic&#34;&gt;# update window titles in tmux&lt;/span&gt;
+&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;[&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$TMUX&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt; !&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;]&lt;/span&gt;; &lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;then&lt;/span&gt;
+    &lt;span style=&#34;color:#60a0b0;font-style:italic&#34;&gt;# PROMPT_COMMAND triggers before printing the prompt&lt;/span&gt;
+    &lt;span style=&#34;color:#007020&#34;&gt;export&lt;/span&gt; &lt;span style=&#34;color:#bb60d5&#34;&gt;PROMPT_COMMAND&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#39;$HOME/bin/tmux-prompt-command.sh&amp;#39;&lt;/span&gt;
+
+    &lt;span style=&#34;color:#60a0b0;font-style:italic&#34;&gt;# DEBUG trap triggers before the command&amp;#39;s process is started&lt;/span&gt;
+    &lt;span style=&#34;color:#007020&#34;&gt;trap&lt;/span&gt; tmux_prompt_hook DEBUG
+&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;fi&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here&amp;rsquo;s a useful function to point the trap at if you want to better understand how this
+works:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;dump_stuff&lt;span style=&#34;color:#666&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#666&#34;&gt;{&lt;/span&gt;
+    &lt;span style=&#34;color:#007020&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;comp_line: &lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$COMP_LINE&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#007020&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;BASH_COMMAND: &lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$BASH_COMMAND&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#007020&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;PROMPT_COMMAND: &lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$PROMPT_COMMAND&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#666&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;I wrote &lt;a href=&#34;https://github.com/jeffrom/tinygraph&#34;&gt;tinygraph&lt;/a&gt; to render the CPU and memory graphs. Tired of having to
+hunt around whenever I need a solution for this, I wanted a tool I could use to make
+arbitrary graphs with threshold coloring with easily customizable characters. Here&amp;rsquo;s the
+sort of thing you can do with it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;cpu&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;$((&lt;/span&gt;&lt;span style=&#34;color:#40a070&#34;&gt;100&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;$(&lt;/span&gt;vmstat &lt;span style=&#34;color:#40a070&#34;&gt;1&lt;/span&gt; 2|tail -1|awk &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#39;{print $15}&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#007020;font-weight:bold&#34;&gt;))&lt;/span&gt;
+
+&lt;span style=&#34;color:#bb60d5&#34;&gt;TMUX_STATUS&lt;/span&gt;&lt;span style=&#34;color:#666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#40a070&#34;&gt;1&lt;/span&gt; tinygraph -n &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#bb60d5&#34;&gt;$cpu&lt;/span&gt;&lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&lt;/span&gt; -t &lt;span style=&#34;color:#40a070&#34;&gt;100&lt;/span&gt; &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    --prefix &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#34;&amp;lt;nerdfont cpu icon&amp;gt;&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    --graph equal &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    --threshold &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#39;60:fg=yellow,bold&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#4070a0;font-weight:bold&#34;&gt;&lt;/span&gt;    --threshold &lt;span style=&#34;color:#4070a0&#34;&gt;&amp;#39;83:fg=red,bold&amp;#39;&lt;/span&gt;
+
+&lt;span style=&#34;color:#60a0b0;font-style:italic&#34;&gt;# see what&amp;#39;s built in and play with thresholds by running: tinygraph --workout&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Customization is a large topic, and this post describes a tiny part of it. There is a lot
+computer folks can do in this space to automate away toil and provide useful experiences
+for ourselves and others. What that means is strongly contested, but nonetheless there is
+potential to make a significant impact on our relationship the the machines we use.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Mass Media Coverage in the Early Democratic Primary 2020 Election</title>
+      <link>//localhost:1313/posts/2020-election-coverage/</link>
+      <pubDate>Fri, 07 Feb 2020 14:03:58 -0500</pubDate>
+      
+      <guid>//localhost:1313/posts/2020-election-coverage/</guid>
+      <description>&lt;p&gt;New transparency rules in Iowa have shed new light on the election process, and
+in doing so have also exposed how major media outlets influence the process,
+favoring and disfavoring specific candidates. At the same time, major media
+themselves have engaged in election rigging to an even greater degree than in
+2016, while independent journalists and other individuals have tracked election
+innaccuracies to a greater degree than previously possible.&lt;/p&gt;
+&lt;p&gt;Several articles have come out describing how the media has framed the election to favor
+Pete Buttigieg &lt;a href=&#34;#manufacturing-success&#34;&gt;[1]&lt;/a&gt;&lt;a href=&#34;#fair-corporate-media&#34;&gt;[2]&lt;/a&gt;. Others describe
+the recent election in Bolivia, in which US government officials called for intervention
+&lt;a href=&#34;#us-congress-bolivia-intervention&#34;&gt;[3]&lt;/a&gt; on the grounds that the results of the election
+were delayed (cites) &lt;a href=&#34;#jacobin-bolivia-iowa-intervention&#34;&gt;[4]&lt;/a&gt;. This type of influence
+media exerts on the 2020 Democratic Primary is neither fair, nor a conspiracy, just a
+banal continuation of US major media in a steady state.&lt;/p&gt;
+&lt;h3 id=&#34;grand-conspiracies&#34;&gt;grand conspiracies&lt;/h3&gt;
+&lt;p&gt;As of the time of this writing, there are &lt;em&gt;still&lt;/em&gt; many inaccurate results after the
+election has officially closed &lt;a href=&#34;#nichanian-iowa-delegate-errors&#34;&gt;[5]&lt;/a&gt;. It also appears
+there are many errors that are now impossible to correct
+&lt;a href=&#34;#corey-iowa-delegate-errors&#34;&gt;[6]&lt;/a&gt;. Much of this work is done by independent and
+local journalists, not the major media so far, despite some honest admissions by them that
+the election process made no sense &lt;a href=&#34;#cohn-iowa-delegate-comments&#34;&gt;[7]&lt;/a&gt;. We can safely say
+at this point that the Iowa Democratic Caucus was an electoral blunder of world-historical
+proportions.&lt;/p&gt;
+&lt;p&gt;These events raise questions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Why were &amp;ldquo;State Delegate Equivalents&amp;rdquo; the means Iowa Democrats chose to use, given the
+popular vote totals now being publicly available? I feel like candidates losing despite
+winning the popular vote is something we don&amp;rsquo;t like.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Why were the television media running banners all week declaring a winner when the
+results weren&amp;rsquo;t even in yet?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Why did Iowa Democrats choose to release 62% of the results instead of just waiting
+until the counts were completed?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Why did Iowa Democrats choose to stop the count when there were clearly errors being
+reported in the media?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;What are the actual, correct results, as far as we can possibly tell?&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These are not unreasonable, tinfoil-hat questions. They are questions we reasonably expect
+the media to ask. I hope to see some good explanations of a timeline of the caucus and as
+close an approximation to the correct result soon.&lt;/p&gt;
+&lt;h3 id=&#34;the-spin&#34;&gt;the spin&lt;/h3&gt;
+&lt;p&gt;Examples abound for those looking for proof of media spin. Take this chart from CNN:&lt;/p&gt;
+
+
+&lt;a href=&#34;#cnn-dem-primary-ad-spend&#34;&gt;
+&lt;figure&gt;
+  &lt;img src=&#34;img/bloomberg-ad-spend.jpeg&#34; alt=&#34;Mike Bloomberg&amp;#39;s ad spend is more than many news organizations&amp;#39; yearly revenue [8].&#34; /&gt;
+  &lt;figcaption&gt;
+    &lt;small&gt;
+      Mike Bloomberg&amp;#39;s ad spend is more than many news organizations&amp;#39; yearly revenue [8].
+    &lt;/small&gt;
+  &lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;/a&gt;
+
+&lt;p&gt;Professional! I&amp;rsquo;m definitely just an amateur, but that chart sure looks to be using
+logarithmic smoothing to me. That kind of smoothing would move all the values closer to
+each other, which seems unhelpful for understanding differences in campaign spend. Lets
+see what it would look like without that:&lt;/p&gt;
+
+&lt;div id=&#34;bloomberg-ad-spend-linear-chart&#34;&gt;&lt;/div&gt;
+&lt;script&gt;
+if (!window.passToJS.charts) { window.passToJS.charts = {} }
+window.passToJS.charts[&#34;bloomberg-ad-spend-linear&#34;] = {&#34;options&#34;:{&#34;animate&#34;:0,&#34;barOptions&#34;:{&#34;spaceRatio&#34;:0.1},&#34;colors&#34;:[&#34;red&#34;],&#34;data&#34;:{&#34;datasets&#34;:[{&#34;chartType&#34;:&#34;bar&#34;,&#34;name&#34;:&#34;Millions&#34;,&#34;values&#34;:[351,178,37,29,21,13,12,9]}],&#34;labels&#34;:[&#34;Bloomberg&#34;,&#34;Steyer&#34;,&#34;Sanders&#34;,&#34;Buttigieg&#34;,&#34;Warren&#34;,&#34;Yang&#34;,&#34;Biden&#34;,&#34;Klobuchar&#34;]},&#34;height&#34;:300,&#34;title&#34;:&#34;CNN Bloomberg Ad Spend Chart, Adjusted With Linear View&#34;,&#34;type&#34;:&#34;axis-mixed&#34;}};
+&lt;/script&gt;
+
+&lt;p&gt;Looks a little different, huh? But we can do better. I don&amp;rsquo;t want to tell CNN how to do
+their job, but pies are making for good content about money lately:&lt;/p&gt;
+
+&lt;div id=&#34;bloomberg-ad-spend-pie-chart&#34;&gt;&lt;/div&gt;
+&lt;script&gt;
+if (!window.passToJS.charts) { window.passToJS.charts = {} }
+window.passToJS.charts[&#34;bloomberg-ad-spend-pie&#34;] = {&#34;options&#34;:{&#34;animate&#34;:0,&#34;barOptions&#34;:{&#34;spaceRatio&#34;:0.1},&#34;colors&#34;:[&#34;red&#34;],&#34;data&#34;:{&#34;datasets&#34;:[{&#34;chartType&#34;:&#34;bar&#34;,&#34;name&#34;:&#34;Millions&#34;,&#34;values&#34;:[351,178,37,29,21,13,12,9]}],&#34;labels&#34;:[&#34;Bloomberg&#34;,&#34;Steyer&#34;,&#34;Sanders&#34;,&#34;Buttigieg&#34;,&#34;Warren&#34;,&#34;Yang&#34;,&#34;Biden&#34;,&#34;Klobuchar&#34;]},&#34;height&#34;:300,&#34;title&#34;:&#34;CNN Bloomberg Ad Spend Chart, as a Pie Chart&#34;,&#34;type&#34;:&#34;pie&#34;}};
+&lt;/script&gt;
+
+&lt;p&gt;You&amp;rsquo;re seeing that right: the billionaires are outspending the rest of the candidates
+combined by at least 5:1. I&amp;rsquo;d love to see the chart of the amount of billionaire money
+spent next to comparable newsroom yearly revenues.&lt;/p&gt;
+&lt;p&gt;Much social media discourse follows major outlet talking points, such as focus on the SDE
+vote count, but also generally being focused on vote totals. However no one seriously
+believes the vote itself is what the Iowa caucus is about. The Iowa caucus is about
+setting a momentum for the rest of the primary.&lt;/p&gt;
+
+&lt;div id=&#34;2020-dem-candidate-gtrends-chart&#34;&gt;&lt;/div&gt;
+&lt;script&gt;
+if (!window.passToJS.charts) { window.passToJS.charts = {} }
+window.passToJS.charts[&#34;2020-dem-candidate-gtrends&#34;] = {&#34;options&#34;:{&#34;animate&#34;:0,&#34;colors&#34;:[&#34;blue&#34;,&#34;red&#34;,&#34;#fcba03&#34;,&#34;green&#34;],&#34;data&#34;:{&#34;datasets&#34;:[{&#34;name&#34;:&#34;Sanders&#34;,&#34;values&#34;:[22,24,24,25,26,32,37,40,78,50,52,50]},{&#34;name&#34;:&#34;Buttigieg&#34;,&#34;values&#34;:[7,5,4,4,5,6,10,10,80,100,52,59]},{&#34;name&#34;:&#34;Biden&#34;,&#34;values&#34;:[11,14,14,16,15,14,15,18,30,23,21,17]},{&#34;name&#34;:&#34;Warren&#34;,&#34;values&#34;:[7,7,7,8,14,11,10,9,15,11,10,10]}],&#34;labels&#34;:[&#34;2020-01-27&#34;,&#34;2020-01-28&#34;,&#34;2020-01-29&#34;,&#34;2020-01-30&#34;,&#34;2020-01-31&#34;,&#34;2020-02-01&#34;,&#34;2020-02-02&#34;,&#34;2020-02-03&#34;,&#34;2020-02-04&#34;,&#34;2020-02-05&#34;,&#34;2020-02-06&#34;,&#34;2020-02-07&#34;]},&#34;height&#34;:300,&#34;lineOptions&#34;:{&#34;dotSize&#34;:4,&#34;heatline&#34;:1,&#34;regionFill&#34;:1},&#34;title&#34;:&#34;Democratic Candidate Search Trends In the Leadup to New Hampshire (Google Trends)&#34;,&#34;type&#34;:&#34;axis-mixed&#34;}};
+&lt;/script&gt;
+
+&lt;p&gt;And let&amp;rsquo;s not forget Facebook, they managed to circulate disinformation about Iowa for an
+entire day, with the correction being shared at a relatively pitiable rate.&lt;/p&gt;
+&lt;p&gt;it is likely that the caucus results were manipulated in a similar manner in 2016.&lt;/p&gt;
+&lt;p&gt;At the end of the day, you have over here millions of people emphatically supporting
+Bernie Sanders, donating to his campaign to a historically unprecedented degree, and over
+there you have nearly the entire mass media conglomerate in unison attacking him, and have
+been doing so for the past five years. It&amp;rsquo;s getting harder to disagree with Sanders when
+he says the billionaires hate him, and their masks are off in this primary.&lt;/p&gt;
+&lt;p&gt;I leave you with this most divisive graphic, widely panned as &amp;ldquo;the most antisemitic
+cartoon I&amp;rsquo;ve ever seen about an Episcopalian &lt;a href=&#34;#alex-pareene-eli-valley-tweet-reply&#34;&gt;[9]&lt;/a&gt;:&amp;rdquo;&lt;/p&gt;
+
+
+&lt;a href=&#34;#eli-valley-buttigieg-oscars&#34;&gt;
+&lt;figure&gt;
+  &lt;img src=&#34;img/eli-valley-buttigieg-oscars.jpeg&#34; alt=&#34;Congrats @PeteButtigieg on your pre-Oscars announcement - @elivalley [9]&#34; /&gt;
+  &lt;figcaption&gt;
+    &lt;small&gt;
+      Congrats @PeteButtigieg on your pre-Oscars announcement - @elivalley [9]
+    &lt;/small&gt;
+  &lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;/a&gt;
+
+&lt;hr&gt;
+&lt;h3 id=&#34;references&#34;&gt;references&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  Julie Hollar. (February 7, 2020).
+  &lt;a href=&#34;https://fair.org/home/manufacturing-success-cnns-premature-parade-for-buttigieg-in-iowa/&#34; name=&#34;manufacturing-success&#34;&gt;Manufacturing Success: CNN’s Premature Parade for Buttigieg in Iowa&lt;/a&gt;.
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  Jim Naureckas. (February 5, 2020).
+  &lt;a href=&#34;https://fair.org/home/how-corporate-media-make-pete-look-like-hes-winning/&#34; name=&#34;fair-corporate-media&#34;&gt;How Corporate Media Make Pete Look Like He’s Winning&lt;/a&gt;.
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  US Senate (116th Congress). (January 8, 2020).
+  &lt;a href=&#34;https://www.congress.gov/bill/116th-congress/senate-resolution/447/text?q=%7B%22search%22%3A%5B%22bolivia%22%5D%7D&amp;amp;r=1&amp;amp;s=7#idFBBB2BC296FF48CBB229425DDB8EFA40&#34; name=&#34;us-congress-bolivia-intervention&#34;&gt;S.Res.447&lt;/a&gt;.
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  Kevin Cashman (Jacobin). (February 5, 2020).
+  &lt;a href=&#34;https://www.jacobinmag.com/2020/02/iowa-caucus-bolivia-coup-democratic-party&#34; name=&#34;jacobin-bolivia-iowa-intervention&#34;&gt;If Iowa Was Bolivia, the US Would Have Already Intervened&lt;/a&gt;.
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  Daniel Nichanian (@Taniel) (The Appeal).
+  &lt;a href=&#34;https://twitter.com/Taniel/status/1226681770848006146&#34; name=&#34;nichanian-iowa-delegate-errors&#34;&gt;Tweet&lt;/a&gt;. (February 9, 2020).
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  Ethan Corey (@CoatsAndLinen) (The Appeal).
+  &lt;a href=&#34;https://twitter.com/CoatsandLinen/status/1226696531773968384&#34; name=&#34;corey-iowa-delegate-errors&#34;&gt;Tweet&lt;/a&gt;. (February 9, 2020).
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  Nate Cohn (@Nate_Cohn) (The New York Times).
+  &lt;a href=&#34;https://twitter.com/Nate_Cohn/status/1225628175943766017&#34; name=&#34;cohn-iowa-delegate-comments&#34;&gt;Tweet&lt;/a&gt;. (February 6, 2020).
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  Brian Stelter.
+  &lt;a href=&#34;https://twitter.com/brianstelter/status/1226568876495949829&#34; name=&#34;cnn-dem-primary-ad-spend&#34;&gt;Tweet of CNN Chart of 2020 Dem Campaign Ad Spend&lt;/a&gt;. &lt;i&gt;Twitter&lt;/i&gt;, (February 9, 2020).
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  Alex Pareene (@pareene) (The New Republic).
+  &lt;a href=&#34;https://twitter.com/pareene/status/1226316770430136321&#34; name=&#34;alex-pareene-eli-valley-tweet-reply&#34;&gt;Tweet&lt;/a&gt;. (February 8, 2020).
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;li&gt;
+
+&lt;small&gt;
+  Eli Valley.
+  &lt;a href=&#34;https://twitter.com/elivalley/status/1226315891459153920&#34; name=&#34;eli-valley-buttigieg-oscars&#34;&gt;Congrats @PeteButtigieg on your pre-Oscars announcement&lt;/a&gt;. &lt;i&gt;Twitter&lt;/i&gt;, (February 8, 2020).
+&lt;/small&gt;
+
+&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Hello</title>
+      <link>//localhost:1313/posts/hello/</link>
+      <pubDate>Fri, 07 Feb 2020 10:39:22 -0500</pubDate>
+      
+      <guid>//localhost:1313/posts/hello/</guid>
+      <description>&lt;h2 id=&#34;16-bit-intel-8088-chip&#34;&gt;16-bit Intel 8088 chip&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;with an Apple Macintosh
+you can&#39;t run Radio Shack programs
+in its disc drive.
+nor can a Commodore 64
+drive read a file
+you have created on an
+IBM Personal Computer.
+both Kaypro and Osborne computers use
+the CP/M operating system
+but can&#39;t read each other&#39;s
+handwriting
+for they format (write
+on) discs in different
+ways.
+the Tandy 2000 runs MS-DOS but
+can&#39;t use most programs produced for
+the IBM Personal Computer
+unless certain
+bits and bytes are
+altered
+but the wind still blows over
+Savannah
+and in the Spring
+the turkey buzzard struts and
+flounces before his
+hens.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Charles Bukowski&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>about</title>
+      <link>//localhost:1313/about/</link>
+      <pubDate>Fri, 07 Feb 2020 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/about/</guid>
+      <description>&lt;h3 id=&#34;about-me&#34;&gt;about me&lt;/h3&gt;
+&lt;p&gt;computers, the internet, music, history, learning more.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;m the author of &lt;a href=&#34;https://github.com/jeffrom/logd&#34;&gt;logd&lt;/a&gt;, a log server with emphasis on simplicity and speed.&lt;/p&gt;
+&lt;p&gt;I did a talk at &lt;a href=&#34;https://www.youtube.com/watch?v=GXh-f3S5rcM&#34;&gt;The Big Elixir&lt;/a&gt; in 2018 on testing a large api server.&lt;/p&gt;
+&lt;p&gt;I have some other projects on &lt;a href=&#34;https://github.com/jeffrom&#34;&gt;github&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

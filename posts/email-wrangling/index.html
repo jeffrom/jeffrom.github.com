@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en-us"><head><script src="/livereload.js?port=1313&mindelay=10&v=2" data-no-instant defer></script>
+  <meta charset="utf-8">
+    <title>Wrangling 15 Years of Email | Jeff Martin</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/main.38bf2.css" rel="stylesheet">
+
+  <link rel="canonical" href="//localhost:1313/posts/email-wrangling/">
+  <meta name="theme-color" content="#ffffff">
+</head>
+<body>
+      <script>window.passToJS = {};</script>
+<div id="content">
+    <strong>Wrangling 15 Years of Email</strong>
+    <hr />
+
+  <ul>
+<li>export promotions label mbox from google</li>
+<li>train spam</li>
+<li>train ham</li>
+</ul>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#60a0b0;font-style:italic"># train spam</span>
+bogofilter --unicode<span style="color:#666">=</span><span style="color:#007020">false</span> -svM &lt; spam.mbox
+notmuch search --output files --format text0 -- tag:spam | xargs -0 bogofilter --unicode<span style="color:#666">=</span><span style="color:#007020">false</span> -svB
+
+<span style="color:#60a0b0;font-style:italic"># train ham</span>
+notmuch search --output files --format text0 -- tag:friend or tag:family or tag:list or tag:ham and not tag:spam | xargs -0 bogofilter --unicode<span style="color:#666">=</span><span style="color:#007020">false</span> -nvB
+</code></pre></div><p>after the first run:</p>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ notmuch search --output files --format text0 -- tag:inbox | xargs -0 bogofilter -BT | tee bogo.1.out
+$ cat bogo.1.out | awk <span style="color:#4070a0">&#39;{print $(NF-1)}&#39;</span> | sort | uniq -c
+  <span style="color:#40a070">23729</span> H
+  <span style="color:#40a070">17253</span> S
+  <span style="color:#40a070">26983</span> U
+</code></pre></div><div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">spam-check.py tag:inbox
+</code></pre></div><p>had a lot of false positives. rewrote in go, better subprocess communication:</p>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat bogo.2.out | awk <span style="color:#4070a0">&#39;{print $1}&#39;</span> | sort | uniq -c
+  <span style="color:#40a070">21975</span> HAM
+      <span style="color:#40a070">1</span> &lt;noreply@h4.hilton.com&gt;
+   <span style="color:#40a070">8339</span> SPAM
+  <span style="color:#40a070">18477</span> UNSURE
+</code></pre></div><p>ran in 6 minutes.</p>
+<pre><code>jeff@x1cats:~ $ cat bogo.3.out | awk '{print $1}' | sort | uniq -c
+  25931 HAM
+      1 &lt;noreply@h4.hilton.com&gt;
+   4854 SPAM
+  17922 UNSURE
+jeff@x1cats:~ $ cat bogo.4.out | awk '{print $1}' | sort | uniq -c
+  26350 HAM
+      1 &lt;noreply@h4.hilton.com&gt;
+   4744 SPAM
+  16755 UNSURE
+</code></pre><ul>
+<li>bindings in aerc so i can mark spam/ham and train bogofilter</li>
+<li>train bogo in post proc: if it comes in as spam / ham, etc</li>
+<li>post proc: apply bogo to unknown emails</li>
+</ul>
+<p>basically the system supports:</p>
+<ul>
+<li>tag spam/ham in bulk using notmuch</li>
+<li>zoom in and tag using aerc</li>
+<li>train bogo using gmail&rsquo;s spam detection as it comes in</li>
+<li>train gmail using bogofilter by pushing the spam back out</li>
+<li>audit bogofilter by having it set intermediate tags (bogo-spam, bogo-unsure, bogo-ham)</li>
+</ul>
+<p>inbox: out of ~13k messages, 5000 were spam</p>
+<h2 id="inspiration">inspiration</h2>
+<ul>
+<li><a href="https://github.com/tminor/tmail">https://github.com/tminor/tmail</a></li>
+<li><a href="https://lwn.net/Articles/705856/">https://lwn.net/Articles/705856/</a></li>
+<li><a href="https://lwn.net/Articles/172491/">https://lwn.net/Articles/172491/</a></li>
+<li><a href="https://notmuchmail.org/pipermail/notmuch/2016/023111.html">https://notmuchmail.org/pipermail/notmuch/2016/023111.html</a></li>
+<li><a href="https://webapps.stackexchange.com/questions/13878/does-moving-a-mail-to-the-imap-spam-folder-trains-gmails-spam-filter">https://webapps.stackexchange.com/questions/13878/does-moving-a-mail-to-the-imap-spam-folder-trains-gmails-spam-filter</a></li>
+<li><a href="https://anarc.at/services/mail/">https://anarc.at/services/mail/</a></li>
+</ul>
+
+    <p><i>Wednesday, June 24 2020</i></p>
+        </div><footer>
+  <div class="footer-links">
+    <a href="/">home</a>
+        <a href="//localhost:1313/about/">about</a>
+    <a href="/.well-known/openpgpkey/hu/xrpugdx8x3p7fauny9cnr1181okhpnjb" title="PGP key A0D09A68487704EBFE4477AE70A3E0BA67DF36C1" download="jeffrom.pgp">pgp</a>
+    <a href="/index.xml">rss</a>
+  </div>
+</footer>
+
+          <script type="text/javascript" src="/main.38bf2.js"></script>
+    </body>
+</html>
